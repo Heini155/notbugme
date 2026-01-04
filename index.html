@@ -108,7 +108,6 @@
         </select>
       </label>
 
-      <button id="fadeout" disabled>Fade out</button>
       <span id="timerLabel" class="small"></span>
 
       <span class="spacer"></span>
@@ -144,7 +143,6 @@
         timer120: "120 min",
         buttonStart: "Start",
         buttonStop: "Stop",
-        buttonFadeOut: "Ausblenden",
         statusReady: "bereit",
         statusInit: "init…",
         statusPlaying: "läuft",
@@ -178,7 +176,6 @@
         timer120: "120 min",
         buttonStart: "Start",
         buttonStop: "Stop",
-        buttonFadeOut: "Fade out",
         statusReady: "ready",
         statusInit: "init…",
         statusPlaying: "playing",
@@ -198,7 +195,6 @@
 
     // -------- UI ----------
     const $toggle = document.getElementById('toggle');
-    const $fadeout = document.getElementById('fadeout');
     const $type = document.getElementById('type');
     const $vol = document.getElementById('vol');
     const $status = document.getElementById('status');
@@ -260,7 +256,6 @@
       $optTimer90.textContent = t.timer90;
       $optTimer120.textContent = t.timer120;
 
-      $fadeout.textContent = t.buttonFadeOut;
       $why.textContent = t.why;
       $tip.textContent = t.tip;
       $techline.textContent = techMode === 'fallback' ? t.techlineFallback : t.techlineWorklet;
@@ -500,7 +495,6 @@
       await ctx.suspend();
 
       setStatus('statusReady');
-      $fadeout.disabled = false;
     }
 
     async function start(){
@@ -547,7 +541,6 @@
 
     // UI
     $toggle.addEventListener("click", () => playing ? stop(false) : start());
-    $fadeout.addEventListener("click", () => stop(false));
     $type.addEventListener("change", () => {
       if (sourceNode && sourceNode.port) sourceNode.port.postMessage({ type: $type.value });
     });
