@@ -32,6 +32,7 @@ Good for:
 - Web Audio API
 - AudioWorklet (with ScriptProcessor fallback)
 - Noise is generated sample-by-sample
+- Binaural beats: 220 Hz (L) / 224 Hz (R) = 4 Hz beat
 - No external libraries
 - Single-file `index.html`
 
@@ -69,6 +70,7 @@ Ideal fuer:
 - Web Audio API
 - AudioWorklet (mit Fallback auf ScriptProcessor)
 - Noise wird Sample fuer Sample berechnet
+- Binaurale Beats: 220 Hz (L) / 224 Hz (R) = 4 Hz Beat
 - Keine externen Libraries
 - Single-File `index.html`
 
