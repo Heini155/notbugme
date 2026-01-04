@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>notbug.me — Noise</title>
-  <meta name="description" content="Synthetisches Rauschen in Echtzeit: Brown, Pink, White. Ohne Loops, ohne hörbare Übergänge. Mit Timer und sanftem Fade." />
+  <title>notbug.me - Noise</title>
+  <meta id="metaDescription" name="description" content="Synthetisches Rauschen in Echtzeit: Brown, Pink, White. Ohne Loops, ohne hörbare Übergänge. Mit Timer und sanftem Fade." />
   <style>
     :root { color-scheme: dark; }
     body{
@@ -65,23 +65,31 @@
 <body>
   <div class="card">
     <h1>notbug.me</h1>
-    <p>Studio-sauberes synthetisches Rauschen. <b>Keine Loops</b>, keine hörbaren Übergänge. Sanftes Fade und Timer.</p>
+    <p id="lead">Studio-sauberes synthetisches Rauschen. <b>Keine Loops</b>, keine hörbaren Übergänge. Sanftes Fade und Timer.</p>
 
     <div class="row">
       <button id="toggle">Start</button>
 
       <label>
-        Noise
+        <span id="labelType">Noise</span>
         <select id="type">
-          <option value="brown">Brown (tief & beruhigend)</option>
-          <option value="pink">Pink (ausgewogen)</option>
-          <option value="white">White (heller)</option>
+          <option id="optBrown" value="brown">Brown (tief & beruhigend)</option>
+          <option id="optPink" value="pink">Pink (ausgewogen)</option>
+          <option id="optWhite" value="white">White (heller)</option>
         </select>
       </label>
 
       <label>
-        Volume
+        <span id="labelVolume">Volume</span>
         <input id="vol" type="range" min="0" max="1" step="0.001" value="0.22" />
+      </label>
+
+      <label>
+        <span id="labelLanguage">Sprache</span>
+        <select id="lang">
+          <option value="de">Deutsch</option>
+          <option value="en">English</option>
+        </select>
       </label>
 
       <span class="spacer"></span>
@@ -90,13 +98,13 @@
 
     <div class="row">
       <label>
-        Timer
+        <span id="labelTimer">Timer</span>
         <select id="timer">
-          <option value="0">kein</option>
-          <option value="1800">30 min</option>
-          <option value="3600">60 min</option>
-          <option value="5400">90 min</option>
-          <option value="7200">120 min</option>
+          <option id="optTimer0" value="0">kein</option>
+          <option id="optTimer30" value="1800">30 min</option>
+          <option id="optTimer60" value="3600">60 min</option>
+          <option id="optTimer90" value="5400">90 min</option>
+          <option id="optTimer120" value="7200">120 min</option>
         </select>
       </label>
 
@@ -104,7 +112,7 @@
       <span id="timerLabel" class="small"></span>
 
       <span class="spacer"></span>
-      <span class="small">Tipp: Leise starten. Noise fühlt sich schnell „zu laut“ an.</span>
+      <span class="small" id="tip">Tipp: Leise starten. Noise fühlt sich schnell „zu laut“ an.</span>
     </div>
 
     <div class="row" style="margin-top:18px">
@@ -117,6 +125,77 @@
   </div>
 
   <script>
+    const I18N = {
+      de: {
+        title: "notbug.me - Noise",
+        description: "Synthetisches Rauschen in Echtzeit: Brown, Pink, White. Ohne Loops, ohne hörbare Übergänge. Mit Timer und sanftem Fade.",
+        lead: "Studio-sauberes synthetisches Rauschen. <b>Keine Loops</b>, keine hörbaren Übergänge. Sanftes Fade und Timer.",
+        labelType: "Noise",
+        typeBrown: "Brown (tief & beruhigend)",
+        typePink: "Pink (ausgewogen)",
+        typeWhite: "White (heller)",
+        labelVolume: "Lautstärke",
+        labelLanguage: "Sprache",
+        labelTimer: "Timer",
+        timerNone: "kein",
+        timer30: "30 min",
+        timer60: "60 min",
+        timer90: "90 min",
+        timer120: "120 min",
+        buttonStart: "Start",
+        buttonStop: "Stop",
+        buttonFadeOut: "Ausblenden",
+        statusReady: "bereit",
+        statusInit: "init…",
+        statusPlaying: "läuft",
+        statusFading: "blendet aus",
+        statusFadingTimer: "blendet aus (timer)",
+        statusStopped: "gestoppt",
+        tip: "Tipp: Leise starten. Noise fühlt sich schnell „zu laut“ an.",
+        techlineWorklet: "Technisch: Web Audio (AudioWorklet), realtime generiert. Keine Audiodateien.",
+        techlineFallback: "Technisch: Web Audio (Fallback ScriptProcessor), realtime generiert. Keine Audiodateien.",
+        why: "Warum „keine Loops“?",
+        whyAlert: "Hier wird kein Audiofile geloopt. Das Rauschen wird kontinuierlich in Echtzeit berechnet. Daher gibt es keinen Loop-Übergang, weil es keinen Loop gibt.",
+        errWorkletUnsupported: "AudioWorklet wird von diesem Browser nicht unterstützt.",
+        errWorkletInit: "AudioWorklet konnte nicht initialisiert werden, Fallback aktiv.\nGrund:\n",
+        timerEndsIn: "endet in"
+      },
+      en: {
+        title: "notbug.me - Noise",
+        description: "Real-time synthetic noise: brown, pink, white. No loops, no audible transitions. With timer and gentle fade.",
+        lead: "Studio-clean synthetic noise. <b>No loops</b>, no audible transitions. Gentle fade and timer.",
+        labelType: "Noise",
+        typeBrown: "Brown (deep & calming)",
+        typePink: "Pink (balanced)",
+        typeWhite: "White (bright)",
+        labelVolume: "Volume",
+        labelLanguage: "Language",
+        labelTimer: "Timer",
+        timerNone: "none",
+        timer30: "30 min",
+        timer60: "60 min",
+        timer90: "90 min",
+        timer120: "120 min",
+        buttonStart: "Start",
+        buttonStop: "Stop",
+        buttonFadeOut: "Fade out",
+        statusReady: "ready",
+        statusInit: "init…",
+        statusPlaying: "playing",
+        statusFading: "fading out",
+        statusFadingTimer: "fading out (timer)",
+        statusStopped: "stopped",
+        tip: "Tip: Start quiet. Noise quickly feels “too loud”.",
+        techlineWorklet: "Tech: Web Audio (AudioWorklet), real-time generated. No audio files.",
+        techlineFallback: "Tech: Web Audio (Fallback ScriptProcessor), real-time generated. No audio files.",
+        why: "Why “no loops”?",
+        whyAlert: "No audio file is looped here. The noise is generated continuously in real time, so there is no loop transition because there is no loop.",
+        errWorkletUnsupported: "AudioWorklet is not supported by this browser.",
+        errWorkletInit: "AudioWorklet could not be initialized, fallback active.\nReason:\n",
+        timerEndsIn: "ends in"
+      }
+    };
+
     // -------- UI ----------
     const $toggle = document.getElementById('toggle');
     const $fadeout = document.getElementById('fadeout');
@@ -128,8 +207,74 @@
     const $why = document.getElementById('why');
     const $err = document.getElementById('errbox');
     const $techline = document.getElementById('techline');
+    const $lead = document.getElementById('lead');
+    const $lang = document.getElementById('lang');
+    const $labelType = document.getElementById('labelType');
+    const $labelVolume = document.getElementById('labelVolume');
+    const $labelLanguage = document.getElementById('labelLanguage');
+    const $labelTimer = document.getElementById('labelTimer');
+    const $tip = document.getElementById('tip');
+    const $metaDescription = document.getElementById('metaDescription');
+    const $optBrown = document.getElementById('optBrown');
+    const $optPink = document.getElementById('optPink');
+    const $optWhite = document.getElementById('optWhite');
+    const $optTimer0 = document.getElementById('optTimer0');
+    const $optTimer30 = document.getElementById('optTimer30');
+    const $optTimer60 = document.getElementById('optTimer60');
+    const $optTimer90 = document.getElementById('optTimer90');
+    const $optTimer120 = document.getElementById('optTimer120');
 
-    function setStatus(t){ $status.textContent = t; }
+    let currentLang = 'de';
+    let statusKey = 'statusReady';
+    let techMode = 'worklet';
+
+    function detectLanguage(){
+      const langs = navigator.languages && navigator.languages.length
+        ? navigator.languages
+        : [navigator.language || 'en'];
+      return langs.some((l) => String(l).toLowerCase().startsWith('de')) ? 'de' : 'en';
+    }
+
+    function applyLanguage(lang){
+      if (!I18N[lang]) lang = 'en';
+      currentLang = lang;
+
+      const t = I18N[currentLang];
+      document.documentElement.lang = currentLang;
+      document.title = t.title;
+      $metaDescription.setAttribute('content', t.description);
+
+      $lead.innerHTML = t.lead;
+      $labelType.textContent = t.labelType;
+      $labelVolume.textContent = t.labelVolume;
+      $labelLanguage.textContent = t.labelLanguage;
+      $labelTimer.textContent = t.labelTimer;
+
+      $optBrown.textContent = t.typeBrown;
+      $optPink.textContent = t.typePink;
+      $optWhite.textContent = t.typeWhite;
+
+      $optTimer0.textContent = t.timerNone;
+      $optTimer30.textContent = t.timer30;
+      $optTimer60.textContent = t.timer60;
+      $optTimer90.textContent = t.timer90;
+      $optTimer120.textContent = t.timer120;
+
+      $fadeout.textContent = t.buttonFadeOut;
+      $why.textContent = t.why;
+      $tip.textContent = t.tip;
+      $techline.textContent = techMode === 'fallback' ? t.techlineFallback : t.techlineWorklet;
+
+      updateToggleLabel();
+      setStatus(statusKey);
+      updateTimerLabel();
+    }
+
+    function setStatus(key){
+      statusKey = key;
+      $status.textContent = I18N[currentLang][key] || key;
+    }
+
     function showErr(msg){
       $err.style.display = "block";
       $err.textContent = msg;
@@ -137,6 +282,26 @@
     function clearErr(){
       $err.style.display = "none";
       $err.textContent = "";
+    }
+
+    function updateToggleLabel(){
+      const t = I18N[currentLang];
+      $toggle.textContent = playing ? t.buttonStop : t.buttonStart;
+    }
+
+    function updateTimerLabel(){
+      if (!endsAt) {
+        $timerLabel.textContent = "";
+        return;
+      }
+      const leftMs = endsAt - Date.now();
+      if (leftMs <= 0) {
+        $timerLabel.textContent = "";
+        return;
+      }
+      const m = Math.floor(leftMs / 60000);
+      const s = Math.floor((leftMs % 60000) / 1000);
+      $timerLabel.textContent = `${I18N[currentLang].timerEndsIn} ${m}:${String(s).padStart(2,'0')}`;
     }
 
     // -------- audio state ----------
@@ -160,7 +325,7 @@
     function clearTimer(){
       if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
       endsAt = 0;
-      $timerLabel.textContent = "";
+      updateTimerLabel();
     }
 
     function startCountdown(seconds){
@@ -174,9 +339,7 @@
           stop(true);
           return;
         }
-        const m = Math.floor(leftMs / 60000);
-        const s = Math.floor((leftMs % 60000) / 1000);
-        $timerLabel.textContent = `endet in ${m}:${String(s).padStart(2,'0')}`;
+        updateTimerLabel();
       }, 250);
     }
 
@@ -272,7 +435,7 @@
         registerProcessor('noise-processor', NoiseProcessor);
       `;
 
-      if (!audioCtx.audioWorklet) throw new Error("AudioWorklet wird von diesem Browser nicht unterstützt.");
+      if (!audioCtx.audioWorklet) throw new Error(I18N[currentLang].errWorkletUnsupported);
 
       const blob = new Blob([workletSource], { type: 'application/javascript' });
       const url = URL.createObjectURL(blob);
@@ -297,7 +460,7 @@
       if (ctx) return;
 
       clearErr();
-      setStatus("init…");
+      setStatus('statusInit');
 
       // IMPORTANT: create AudioContext only on user gesture (we are inside button click)
       ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -317,13 +480,15 @@
       // Try Worklet, fallback to ScriptProcessor
       try {
         sourceNode = await makeAudioWorkletNoise(ctx);
-        $techline.textContent = "Technisch: Web Audio (AudioWorklet), realtime generiert. Keine Audiodateien.";
+        techMode = 'worklet';
+        $techline.textContent = I18N[currentLang].techlineWorklet;
       } catch (e) {
         console.warn("AudioWorklet failed, fallback to ScriptProcessor:", e);
         sourceNode = makeScriptProcessorNoise(ctx);
-        $techline.textContent = "Technisch: Web Audio (Fallback ScriptProcessor), realtime generiert. Keine Audiodateien.";
+        techMode = 'fallback';
+        $techline.textContent = I18N[currentLang].techlineFallback;
         // Show reason once (useful for debugging)
-        showErr("AudioWorklet konnte nicht initialisiert werden, Fallback aktiv.\nGrund:\n" + (e?.message || String(e)));
+        showErr(I18N[currentLang].errWorkletInit + (e?.message || String(e)));
       }
 
       sourceNode.connect(hp);
@@ -334,7 +499,7 @@
       // Keep running state controlled by start/stop
       await ctx.suspend();
 
-      setStatus("ready");
+      setStatus('statusReady');
       $fadeout.disabled = false;
     }
 
@@ -352,8 +517,8 @@
       fadeTo(parseFloat($vol.value), 0.35);
 
       playing = true;
-      setStatus("playing");
-      $toggle.textContent = "Stop";
+      setStatus('statusPlaying');
+      updateToggleLabel();
 
       startCountdown(parseInt($timer.value, 10));
     }
@@ -362,16 +527,22 @@
       if (!ctx) return;
       fadeTo(0.0, 0.45);
       playing = false;
-      setStatus(viaTimer ? "fading out (timer)" : "fading out");
-      $toggle.textContent = "Start";
+      setStatus(viaTimer ? 'statusFadingTimer' : 'statusFading');
+      updateToggleLabel();
       clearTimer();
 
       setTimeout(async () => {
         if (!playing && ctx && ctx.state === "running") {
           await ctx.suspend();
-          setStatus("stopped");
+          setStatus('statusStopped');
         }
       }, 520);
+    }
+
+    function initLanguage(){
+      const preferred = detectLanguage();
+      $lang.value = preferred;
+      applyLanguage(preferred);
     }
 
     // UI
@@ -390,10 +561,12 @@
     });
     $why.addEventListener("click", (e) => {
       e.preventDefault();
-      alert("Hier wird kein Audiofile geloopt. Das Rauschen wird kontinuierlich in Echtzeit berechnet. Daher gibt es keinen Loop-Übergang, weil es keinen Loop gibt.");
+      alert(I18N[currentLang].whyAlert);
     });
+    $lang.addEventListener("change", () => applyLanguage($lang.value));
 
-    setStatus("ready");
+    initLanguage();
+    setStatus('statusReady');
   </script>
 </body>
 </html>
