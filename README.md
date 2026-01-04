@@ -1,14 +1,14 @@
 # notbug.me
 
-**No loops. Just noise.**
-Real-time synthetic noise for sleep, relaxation, and focus.
+**No loops. Just sound.**
+Real-time synthetic sound for sleep, relaxation, and focus.
 
 ---
 
 ## English
 
 ### What is notbug.me?
-**notbug.me** is a minimalist web app for continuous noise. The sound is generated live in the browser (Web Audio API), so there are **no audio files, no loops, and no audible transitions**.
+**notbug.me** is a minimalist web app for continuous sound. The audio is generated live in the browser (Web Audio API), so there are **no audio files, no loops, and no audible transitions**.
 
 Good for:
 - Falling asleep without mental chatter
@@ -16,7 +16,9 @@ Good for:
 - Focus and deep work
 
 ### Features
-- Brown / Pink / White noise
+- Brown noise
+- Binaural beats (relax/sleep)
+- Ocean surf
 - Real-time synthesis (no loops)
 - Gentle fade-in / fade-out
 - Sleep timer (30 / 60 / 90 / 120 min)
@@ -42,8 +44,8 @@ Good for:
 ## Deutsch
 
 ### Was ist notbug.me?
-**notbug.me** ist eine minimalistische Web-App fuer kontinuierliches Rauschen.
-Das Rauschen wird live im Browser erzeugt (Web Audio API) - es gibt **keine Audiodateien, keine Loops und keine hoerbaren Uebergaenge**.
+**notbug.me** ist eine minimalistische Web-App fuer kontinuierlichen Sound.
+Der Klang wird live im Browser erzeugt (Web Audio API) - es gibt **keine Audiodateien, keine Loops und keine hoerbaren Uebergaenge**.
 
 Ideal fuer:
 - Einschlafen ohne Gedankenkarussell
@@ -51,7 +53,9 @@ Ideal fuer:
 - Fokus und Deep Work
 
 ### Features
-- Brown / Pink / White Noise
+- Brown Noise
+- Binaurale Beats (Entspannung/Schlafen)
+- Meeresrauschen
 - Echtzeit-Synthese (keine Loops)
 - Sanftes Fade-in / Fade-out
 - Sleep-Timer (30 / 60 / 90 / 120 min)
