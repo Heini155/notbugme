@@ -21,6 +21,11 @@
       padding: 22px;
       box-shadow: 0 12px 30px rgba(0,0,0,.35);
     }
+    .topbar{
+      display:flex;
+      justify-content:flex-end;
+      margin-bottom: 8px;
+    }
     h1{ margin:0 0 6px; font-size: 28px; letter-spacing:.2px; }
     p{ margin:0 0 18px; color: rgba(233,238,245,.78); line-height:1.45; font-size: 18px; }
     .row{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
@@ -46,6 +51,71 @@
     }
     .spacer{ flex: 1 1 auto; }
     .small{ font-size: 12px; color: rgba(233,238,245,.62); }
+    .lang-switch{ display:flex; gap:8px; }
+    .lang-btn{
+      display:inline-flex; align-items:center; gap:6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .lang-btn[aria-pressed="true"]{
+      background:#1a263a;
+      border-color: rgba(255,255,255,.25);
+    }
+    .lang-code{ letter-spacing: .4px; }
+    .flag{
+      width: 18px; height: 12px;
+      border-radius: 2px;
+      border: 1px solid rgba(0,0,0,.35);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.15);
+    }
+    .flag.de{
+      background: linear-gradient(to bottom, #000 0 33%, #dd0000 33% 66%, #ffce00 66% 100%);
+    }
+    .flag.en{
+      background:
+        linear-gradient(to right, transparent 0 40%, #c8102e 40% 60%, transparent 60% 100%),
+        linear-gradient(to bottom, transparent 0 40%, #c8102e 40% 60%, transparent 60% 100%),
+        #ffffff;
+    }
+    .play-btn{
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      padding: 0;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      background:#0f1a12;
+      border:1px solid rgba(255,255,255,.12);
+      position: relative;
+    }
+    .play-btn .icon{
+      position:absolute;
+      display:block;
+    }
+    .icon-play{
+      width: 0; height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 16px solid #2dd76f;
+      transform: translateX(3px);
+    }
+    .play-btn .icon-stop{
+      width: 16px; height: 16px;
+      background:#e5534b;
+      border-radius: 3px;
+      display:none;
+    }
+    .play-btn.is-playing .icon-play{ display:none; }
+    .play-btn.is-playing .icon-stop{ display:block; }
+    .sr-only{
+      position:absolute;
+      width:1px; height:1px;
+      padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0);
+      white-space:nowrap; border:0;
+    }
     .err{
       margin-top: 12px;
       padding: 10px 12px;
@@ -64,11 +134,27 @@
 
 <body>
   <div class="card">
+    <div class="topbar">
+      <div id="langSwitch" class="lang-switch" role="group" aria-label="Sprache">
+        <button id="langDe" class="lang-btn" type="button" data-lang="de" aria-pressed="true">
+          <span class="flag de" aria-hidden="true"></span>
+          <span class="lang-code">DE</span>
+        </button>
+        <button id="langEn" class="lang-btn" type="button" data-lang="en" aria-pressed="false">
+          <span class="flag en" aria-hidden="true"></span>
+          <span class="lang-code">EN</span>
+        </button>
+      </div>
+    </div>
     <h1>notbug.me</h1>
     <p id="lead">Studio-saubere synthetische Klaenge. <b>Keine Loops</b>, keine hoerbaren Uebergaenge. Sanftes Fade und Timer.</p>
 
     <div class="row">
-      <button id="toggle">Start</button>
+      <button id="toggle" class="play-btn" type="button" aria-label="Start">
+        <span class="icon icon-play" aria-hidden="true"></span>
+        <span class="icon icon-stop" aria-hidden="true"></span>
+        <span class="sr-only" id="toggleLabel">Start</span>
+      </button>
 
       <label>
         <span id="labelType">Sound</span>
@@ -82,14 +168,6 @@
       <label>
         <span id="labelVolume">Volume</span>
         <input id="vol" type="range" min="0" max="1" step="0.001" value="0.22" />
-      </label>
-
-      <label>
-        <span id="labelLanguage">Sprache</span>
-        <select id="lang">
-          <option value="de">Deutsch</option>
-          <option value="en">English</option>
-        </select>
       </label>
 
       <span class="spacer"></span>
@@ -204,10 +282,8 @@
     const $err = document.getElementById('errbox');
     const $techline = document.getElementById('techline');
     const $lead = document.getElementById('lead');
-    const $lang = document.getElementById('lang');
     const $labelType = document.getElementById('labelType');
     const $labelVolume = document.getElementById('labelVolume');
-    const $labelLanguage = document.getElementById('labelLanguage');
     const $labelTimer = document.getElementById('labelTimer');
     const $tip = document.getElementById('tip');
     const $metaDescription = document.getElementById('metaDescription');
@@ -219,6 +295,10 @@
     const $optTimer60 = document.getElementById('optTimer60');
     const $optTimer90 = document.getElementById('optTimer90');
     const $optTimer120 = document.getElementById('optTimer120');
+    const $langSwitch = document.getElementById('langSwitch');
+    const $langDe = document.getElementById('langDe');
+    const $langEn = document.getElementById('langEn');
+    const $toggleLabel = document.getElementById('toggleLabel');
 
     let currentLang = 'de';
     let statusKey = 'statusReady';
@@ -243,7 +323,6 @@
       $lead.innerHTML = t.lead;
       $labelType.textContent = t.labelType;
       $labelVolume.textContent = t.labelVolume;
-      $labelLanguage.textContent = t.labelLanguage;
       $labelTimer.textContent = t.labelTimer;
 
       $optBrown.textContent = t.typeBrown;
@@ -259,6 +338,9 @@
       $why.textContent = t.why;
       $tip.textContent = t.tip;
       $techline.textContent = techMode === 'fallback' ? t.techlineFallback : t.techlineWorklet;
+      $langSwitch.setAttribute('aria-label', t.labelLanguage);
+      $langDe.setAttribute('aria-pressed', String(currentLang === 'de'));
+      $langEn.setAttribute('aria-pressed', String(currentLang === 'en'));
 
       updateToggleLabel();
       setStatus(statusKey);
@@ -281,7 +363,10 @@
 
     function updateToggleLabel(){
       const t = I18N[currentLang];
-      $toggle.textContent = playing ? t.buttonStop : t.buttonStart;
+      const label = playing ? t.buttonStop : t.buttonStart;
+      $toggleLabel.textContent = label;
+      $toggle.setAttribute('aria-label', label);
+      $toggle.classList.toggle('is-playing', playing);
     }
 
     function updateTimerLabel(){
@@ -649,7 +734,6 @@
 
     function initLanguage(){
       const preferred = detectLanguage();
-      $lang.value = preferred;
       applyLanguage(preferred);
     }
 
@@ -670,7 +754,11 @@
       e.preventDefault();
       alert(I18N[currentLang].whyAlert);
     });
-    $lang.addEventListener("change", () => applyLanguage($lang.value));
+    $langSwitch.addEventListener("click", (e) => {
+      const btn = e.target.closest('.lang-btn');
+      if (!btn) return;
+      applyLanguage(btn.dataset.lang);
+    });
 
     initLanguage();
     setStatus('statusReady');
