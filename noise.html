@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>notbug.me - Noise</title>
+  <meta id="metaDescription" name="description" content="Synthetische Klaenge in Echtzeit: Brown, Binaural Beats, Meeresrauschen. Ohne Loops, ohne hoerbare Uebergaenge. Mit Timer und sanftem Fade." />
+  <style>
+    :root { color-scheme: dark; }
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background:#0b0f14; color:#e9eef5;
+      display:flex; min-height:100vh; align-items:center; justify-content:center;
+      padding: 18px;
+    }
+    .card{
+      width:min(860px, 94vw);
+      background: #0f1722;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    }
+    .topbar{
+      display:flex;
+      justify-content:flex-end;
+      margin-bottom: 8px;
+    }
+    h1{ margin:0 0 6px; font-size: 28px; letter-spacing:.2px; }
+    p{ margin:0 0 18px; color: rgba(233,238,245,.78); line-height:1.45; font-size: 18px; }
+    .row{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+    .row + .row{ margin-top: 12px; }
+    button, select{
+      background:#121c2a; color:#e9eef5;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+    button{ cursor:pointer; font-weight: 700; padding: 10px 16px; }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
+    label{ font-size: 12px; color: rgba(233,238,245,.78); display:flex; align-items:center; gap:10px; }
+    input[type="range"]{ width: 260px; }
+    .pill{
+      padding: 8px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:#0c1420;
+      color: rgba(233,238,245,.8);
+      font-size: 12px;
+    }
+    .spacer{ flex: 1 1 auto; }
+    .small{ font-size: 12px; color: rgba(233,238,245,.62); }
+    .lang-switch{ display:flex; gap:8px; }
+    .lang-btn{
+      display:inline-flex; align-items:center; gap:6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .lang-btn[aria-pressed="true"]{
+      background:#1a263a;
+      border-color: rgba(255,255,255,.25);
+    }
+    .lang-code{ letter-spacing: .4px; }
+    .flag{
+      width: 18px; height: 12px;
+      border-radius: 2px;
+      border: 1px solid rgba(0,0,0,.35);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.15);
+    }
+    .flag.de{
+      background: linear-gradient(to bottom, #000 0 33%, #dd0000 33% 66%, #ffce00 66% 100%);
+    }
+    .flag.en{
+      background:
+        linear-gradient(to right, transparent 0 40%, #c8102e 40% 60%, transparent 60% 100%),
+        linear-gradient(to bottom, transparent 0 40%, #c8102e 40% 60%, transparent 60% 100%),
+        #ffffff;
+    }
+    .play-btn{
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      padding: 0;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      background:#0f1a12;
+      border:1px solid rgba(255,255,255,.12);
+      position: relative;
+    }
+    .play-btn.is-playing{
+      box-shadow:
+        0 0 0 2px rgba(255,255,255,.08),
+        0 0 18px rgba(229,83,75,.35);
+    }
+    .play-btn .icon{
+      position:absolute;
+      display:block;
+    }
+    .icon-play{
+      width: 0; height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 16px solid #2dd76f;
+      transform: translateX(3px);
+    }
+    .play-btn .icon-stop{
+      width: 16px; height: 16px;
+      background:#e5534b;
+      border-radius: 3px;
+      display:none;
+    }
+    .play-btn.is-playing .icon-play{ display:none; }
+    .play-btn.is-playing .icon-stop{ display:block; }
+    .sr-only{
+      position:absolute;
+      width:1px; height:1px;
+      padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0);
+      white-space:nowrap; border:0;
+    }
+    .err{
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,120,120,.25);
+      background: rgba(255,80,80,.06);
+      color: rgba(255,190,190,.95);
+      font-size: 12px;
+      display:none;
+      white-space: pre-wrap;
+    }
+    a{ color: rgba(233,238,245,.78); text-decoration: none; border-bottom: 1px dotted rgba(233,238,245,.25); }
+    a:hover{ color: rgba(233,238,245,.95); }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <div class="topbar">
+      <div id="langSwitch" class="lang-switch" role="group" aria-label="Sprache">
+        <button id="langDe" class="lang-btn" type="button" data-lang="de" aria-pressed="true">
+          <span class="flag de" aria-hidden="true"></span>
+          <span class="lang-code">DE</span>
+        </button>
+        <button id="langEn" class="lang-btn" type="button" data-lang="en" aria-pressed="false">
+          <span class="flag en" aria-hidden="true"></span>
+          <span class="lang-code">EN</span>
+        </button>
+      </div>
+    </div>
+    <h1>notbug.me</h1>
+    <p id="lead">Studio-saubere synthetische Klaenge. <b>Keine Loops</b>, keine hoerbaren Uebergaenge. Sanftes Fade und Timer.</p>
+
+    <div class="row">
+      <button id="toggle" class="play-btn" type="button" aria-label="Start">
+        <span class="icon icon-play" aria-hidden="true"></span>
+        <span class="icon icon-stop" aria-hidden="true"></span>
+        <span class="sr-only" id="toggleLabel">Start</span>
+      </button>
+
+      <label>
+        <span id="labelType">Sound</span>
+        <select id="type">
+          <option id="optBrown" value="brown">Brown (tief & beruhigend)</option>
+          <option id="optBinaural" value="binaural">Binaural Beats (Entspannung/Schlafen)</option>
+          <option id="optOcean" value="ocean">Meeresrauschen (sanft)</option>
+        </select>
+      </label>
+
+      <label>
+        <span id="labelVolume">Volume</span>
+        <input id="vol" type="range" min="0" max="1" step="0.001" value="0.22" />
+      </label>
+
+      <span class="spacer"></span>
+      <span id="status" class="pill">ready</span>
+    </div>
+
+    <div class="row">
+      <label>
+        <span id="labelTimer">Timer</span>
+        <select id="timer">
+          <option id="optTimer0" value="0">kein</option>
+          <option id="optTimer30" value="1800">30 min</option>
+          <option id="optTimer60" value="3600">60 min</option>
+          <option id="optTimer90" value="5400">90 min</option>
+          <option id="optTimer120" value="7200">120 min</option>
+        </select>
+      </label>
+
+      <span id="timerLabel" class="small"></span>
+
+      <span class="spacer"></span>
+      <span class="small" id="tip">Tipp: Leise starten. Sound fuehlt sich schnell zu laut an.</span>
+    </div>
+
+    <div class="row" style="margin-top:18px">
+      <span class="small" id="techline">Technisch: Web Audio (AudioWorklet), realtime generiert. Keine Audiodateien.</span>
+      <span class="spacer"></span>
+      <span class="small"><a href="#" id="why">Warum keine Loops?</a></span>
+    </div>
+
+    <div class="err" id="errbox"></div>
+  </div>
+
+  <script>
+    const I18N = {
+      de: {
+        title: "notbug.me - Noise",
+        description: "Synthetische Klaenge in Echtzeit: Brown, Binaural Beats, Meeresrauschen. Ohne Loops, ohne hoerbare Uebergaenge. Mit Timer und sanftem Fade.",
+        lead: "Studio-saubere synthetische Klaenge. <b>Keine Loops</b>, keine hoerbaren Uebergaenge. Sanftes Fade und Timer.",
+        labelType: "Sound",
+        typeBrown: "Brown (tief & beruhigend)",
+        typeBinaural: "Binaural Beats (Entspannung/Schlafen)",
+        typeOcean: "Meeresrauschen (sanft)",
+        labelVolume: "Lautstaerke",
+        labelLanguage: "Sprache",
+        labelTimer: "Timer",
+        timerNone: "kein",
+        timer30: "30 min",
+        timer60: "60 min",
+        timer90: "90 min",
+        timer120: "120 min",
+        buttonStart: "Start",
+        buttonStop: "Stop",
+        statusReady: "bereit",
+        statusInit: "init...",
+        statusPlaying: "laeuft",
+        statusFading: "blendet aus",
+        statusFadingTimer: "blendet aus (timer)",
+        statusStopped: "gestoppt",
+        tip: "Tipp: Leise starten. Sound fuehlt sich schnell zu laut an.",
+        techlineWorklet: "Technisch: Web Audio (AudioWorklet), realtime generiert. Keine Audiodateien.",
+        techlineFallback: "Technisch: Web Audio (Fallback ScriptProcessor), realtime generiert. Keine Audiodateien.",
+        why: "Warum keine Loops?",
+        whyAlert: "Hier wird kein Audiofile geloopt. Der Sound wird kontinuierlich in Echtzeit berechnet. Daher gibt es keinen Loop-Uebergang, weil es keinen Loop gibt.",
+        errWorkletUnsupported: "AudioWorklet wird von diesem Browser nicht unterstuetzt.",
+        errWorkletInit: "AudioWorklet konnte nicht initialisiert werden, Fallback aktiv.\nGrund:\n",
+        timerEndsIn: "endet in"
+      },
+      en: {
+        title: "notbug.me - Noise",
+        description: "Real-time synthetic sound: brown, binaural beats, ocean surf. No loops, no audible transitions. With timer and gentle fade.",
+        lead: "Studio-clean synthetic sound. <b>No loops</b>, no audible transitions. Gentle fade and timer.",
+        labelType: "Sound",
+        typeBrown: "Brown (deep & calming)",
+        typeBinaural: "Binaural beats (relax/sleep)",
+        typeOcean: "Ocean surf (gentle)",
+        labelVolume: "Volume",
+        labelLanguage: "Language",
+        labelTimer: "Timer",
+        timerNone: "none",
+        timer30: "30 min",
+        timer60: "60 min",
+        timer90: "90 min",
+        timer120: "120 min",
+        buttonStart: "Start",
+        buttonStop: "Stop",
+        statusReady: "ready",
+        statusInit: "init...",
+        statusPlaying: "playing",
+        statusFading: "fading out",
+        statusFadingTimer: "fading out (timer)",
+        statusStopped: "stopped",
+        tip: "Tip: Start quiet. Sound quickly feels too loud.",
+        techlineWorklet: "Tech: Web Audio (AudioWorklet), real-time generated. No audio files.",
+        techlineFallback: "Tech: Web Audio (Fallback ScriptProcessor), real-time generated. No audio files.",
+        why: "Why no loops?",
+        whyAlert: "No audio file is looped here. The sound is generated continuously in real time, so there is no loop transition because there is no loop.",
+        errWorkletUnsupported: "AudioWorklet is not supported by this browser.",
+        errWorkletInit: "AudioWorklet could not be initialized, fallback active.\nReason:\n",
+        timerEndsIn: "ends in"
+      }
+    };
+
+    // -------- UI ----------
+    const $toggle = document.getElementById('toggle');
+    const $type = document.getElementById('type');
+    const $vol = document.getElementById('vol');
+    const $status = document.getElementById('status');
+    const $timer = document.getElementById('timer');
+    const $timerLabel = document.getElementById('timerLabel');
+    const $why = document.getElementById('why');
+    const $err = document.getElementById('errbox');
+    const $techline = document.getElementById('techline');
+    const $lead = document.getElementById('lead');
+    const $labelType = document.getElementById('labelType');
+    const $labelVolume = document.getElementById('labelVolume');
+    const $labelTimer = document.getElementById('labelTimer');
+    const $tip = document.getElementById('tip');
+    const $metaDescription = document.getElementById('metaDescription');
+    const $optBrown = document.getElementById('optBrown');
+    const $optBinaural = document.getElementById('optBinaural');
+    const $optOcean = document.getElementById('optOcean');
+    const $optTimer0 = document.getElementById('optTimer0');
+    const $optTimer30 = document.getElementById('optTimer30');
+    const $optTimer60 = document.getElementById('optTimer60');
+    const $optTimer90 = document.getElementById('optTimer90');
+    const $optTimer120 = document.getElementById('optTimer120');
+    const $langSwitch = document.getElementById('langSwitch');
+    const $langDe = document.getElementById('langDe');
+    const $langEn = document.getElementById('langEn');
+    const $toggleLabel = document.getElementById('toggleLabel');
+
+    let currentLang = 'de';
+    let statusKey = 'statusReady';
+    let techMode = 'worklet';
+
+    function detectLanguage(){
+      const langs = navigator.languages && navigator.languages.length
+        ? navigator.languages
+        : [navigator.language || 'en'];
+      return langs.some((l) => String(l).toLowerCase().startsWith('de')) ? 'de' : 'en';
+    }
+
+    function applyLanguage(lang){
+      if (!I18N[lang]) lang = 'en';
+      currentLang = lang;
+
+      const t = I18N[currentLang];
+      document.documentElement.lang = currentLang;
+      document.title = t.title;
+      $metaDescription.setAttribute('content', t.description);
+
+      $lead.innerHTML = t.lead;
+      $labelType.textContent = t.labelType;
+      $labelVolume.textContent = t.labelVolume;
+      $labelTimer.textContent = t.labelTimer;
+
+      $optBrown.textContent = t.typeBrown;
+      $optBinaural.textContent = t.typeBinaural;
+      $optOcean.textContent = t.typeOcean;
+
+      $optTimer0.textContent = t.timerNone;
+      $optTimer30.textContent = t.timer30;
+      $optTimer60.textContent = t.timer60;
+      $optTimer90.textContent = t.timer90;
+      $optTimer120.textContent = t.timer120;
+
+      $why.textContent = t.why;
+      $tip.textContent = t.tip;
+      $techline.textContent = techMode === 'fallback' ? t.techlineFallback : t.techlineWorklet;
+      $langSwitch.setAttribute('aria-label', t.labelLanguage);
+      $langDe.setAttribute('aria-pressed', String(currentLang === 'de'));
+      $langEn.setAttribute('aria-pressed', String(currentLang === 'en'));
+
+      updateToggleLabel();
+      setStatus(statusKey);
+      updateTimerLabel();
+    }
+
+    function setStatus(key){
+      statusKey = key;
+      $status.textContent = I18N[currentLang][key] || key;
+    }
+
+    function showErr(msg){
+      $err.style.display = "block";
+      $err.textContent = msg;
+    }
+    function clearErr(){
+      $err.style.display = "none";
+      $err.textContent = "";
+    }
+
+    function updateToggleLabel(){
+      const t = I18N[currentLang];
+      const label = playing ? t.buttonStop : t.buttonStart;
+      $toggleLabel.textContent = label;
+      $toggle.setAttribute('aria-label', label);
+      $toggle.classList.toggle('is-playing', playing);
+    }
+
+    function updateTimerLabel(){
+      if (!endsAt) {
+        $timerLabel.textContent = "";
+        return;
+      }
+      const leftMs = endsAt - Date.now();
+      if (leftMs <= 0) {
+        $timerLabel.textContent = "";
+        return;
+      }
+      const m = Math.floor(leftMs / 60000);
+      const s = Math.floor((leftMs % 60000) / 1000);
+      $timerLabel.textContent = `${I18N[currentLang].timerEndsIn} ${m}:${String(s).padStart(2,'0')}`;
+    }
+
+    // -------- audio state ----------
+    let ctx = null;
+    let gain = null;
+    let sourceNode = null;     // AudioWorkletNode OR ScriptProcessorNode
+    let playing = false;
+
+    let timerHandle = null;
+    let endsAt = 0;
+
+    function now(){ return ctx ? ctx.currentTime : 0; }
+
+    function fadeTo(target, seconds=0.35){
+      const t = now();
+      gain.gain.cancelScheduledValues(t);
+      gain.gain.setValueAtTime(gain.gain.value, t);
+      gain.gain.linearRampToValueAtTime(target, t + seconds);
+    }
+
+    function clearTimer(){
+      if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
+      endsAt = 0;
+      updateTimerLabel();
+    }
+
+    function startCountdown(seconds){
+      clearTimer();
+      if (!seconds) return;
+      endsAt = Date.now() + seconds * 1000;
+      timerHandle = setInterval(() => {
+        const leftMs = endsAt - Date.now();
+        if (leftMs <= 0) {
+          clearTimer();
+          stop(true);
+          return;
+        }
+        updateTimerLabel();
+      }, 250);
+    }
+
+    // -------- generators ----------
+    function makeScriptProcessorNoise(audioCtx){
+      // Fallback generator: ScriptProcessor (deprecated, aber funktioniert fast ueberall)
+      const bufferSize = 4096;
+      const node = audioCtx.createScriptProcessor(bufferSize, 0, 2);
+
+      let brown = 0.0;
+      let p = { b0:0, b1:0, b2:0, b3:0, b4:0, b5:0, b6:0 };
+      let phaseL = 0;
+      let phaseR = 0;
+      let oceanLpL = 0;
+      let oceanLpR = 0;
+      let oceanLfoL = 0;
+      let oceanLfoR = Math.PI * 0.5;
+      const sr = audioCtx.sampleRate;
+
+      function white(){ return Math.random()*2 - 1; }
+
+      function pinkSample(){
+        const w = white();
+        p.b0 = 0.99886 * p.b0 + w * 0.0555179;
+        p.b1 = 0.99332 * p.b1 + w * 0.0750759;
+        p.b2 = 0.96900 * p.b2 + w * 0.1538520;
+        p.b3 = 0.86650 * p.b3 + w * 0.3104856;
+        p.b4 = 0.55000 * p.b4 + w * 0.5329522;
+        p.b5 = -0.7616 * p.b5 - w * 0.0168980;
+        const out = p.b0 + p.b1 + p.b2 + p.b3 + p.b4 + p.b5 + p.b6 + w * 0.5362;
+        p.b6 = w * 0.115926;
+        return out * 0.11;
+      }
+
+      function brownSample(){
+        const w = white();
+        brown = (brown + 0.02 * w) / 1.02;
+        return brown * 3.5;
+      }
+
+      function binauralSample(){
+        const base = 220;
+        const beat = 4;
+        const freqL = base;
+        const freqR = base + beat;
+        const incL = 2 * Math.PI * freqL / sr;
+        const incR = 2 * Math.PI * freqR / sr;
+        const sL = Math.sin(phaseL);
+        const sR = Math.sin(phaseR);
+        phaseL += incL;
+        phaseR += incR;
+        if (phaseL > Math.PI * 2) phaseL -= Math.PI * 2;
+        if (phaseR > Math.PI * 2) phaseR -= Math.PI * 2;
+        return { l: sL * 0.18, r: sR * 0.18 };
+      }
+
+      function oceanSample(){
+        const wL = white();
+        const wR = white();
+        oceanLpL = oceanLpL + (wL - oceanLpL) * 0.02;
+        oceanLpR = oceanLpR + (wR - oceanLpR) * 0.02;
+        const lfoL = (Math.sin(oceanLfoL) + 1) * 0.5;
+        const lfoR = (Math.sin(oceanLfoR) + 1) * 0.5;
+        oceanLfoL += 2 * Math.PI * 0.10 / sr;
+        oceanLfoR += 2 * Math.PI * 0.09 / sr;
+        return {
+          l: oceanLpL * (0.12 + 0.6 * lfoL),
+          r: oceanLpR * (0.12 + 0.6 * lfoR)
+        };
+      }
+
+      node.onaudioprocess = (e) => {
+        const outL = e.outputBuffer.getChannelData(0);
+        const outR = e.outputBuffer.getChannelData(1);
+        const type = $type.value;
+        for (let i=0; i<outL.length; i++){
+          let sL = 0;
+          let sR = 0;
+          if (type === "binaural") {
+            const s = binauralSample();
+            sL = s.l;
+            sR = s.r;
+          } else if (type === "ocean") {
+            const s = oceanSample();
+            sL = s.l;
+            sR = s.r;
+          } else if (type === "pink") {
+            const s = pinkSample();
+            sL = s;
+            sR = s;
+          } else if (type === "white") {
+            const s = white() * 0.20;
+            sL = s;
+            sR = s;
+          } else {
+            const s = brownSample();
+            sL = s;
+            sR = s;
+          }
+          outL[i] = sL;
+          outR[i] = sR;
+        }
+      };
+
+      return node;
+    }
+
+    async function makeAudioWorkletNoise(audioCtx){
+      // Worklet source inline (Blob)
+      const workletSource = `
+        class NoiseProcessor extends AudioWorkletProcessor {
+          constructor() {
+            super();
+            this.type = 'brown';
+            this.brown = 0.0;
+            this.pink = { b0:0, b1:0, b2:0, b3:0, b4:0, b5:0, b6:0 };
+            this.phaseL = 0.0;
+            this.phaseR = 0.0;
+            this.oceanLpL = 0.0;
+            this.oceanLpR = 0.0;
+            this.oceanLfoL = 0.0;
+            this.oceanLfoR = Math.PI * 0.5;
+            this.port.onmessage = (e) => { if (e.data && e.data.type) this.type = e.data.type; };
+          }
+          white(){ return (Math.random() * 2 - 1); }
+          pinkSample(){
+            const p = this.pink;
+            const w = this.white();
+            p.b0 = 0.99886 * p.b0 + w * 0.0555179;
+            p.b1 = 0.99332 * p.b1 + w * 0.0750759;
+            p.b2 = 0.96900 * p.b2 + w * 0.1538520;
+            p.b3 = 0.86650 * p.b3 + w * 0.3104856;
+            p.b4 = 0.55000 * p.b4 + w * 0.5329522;
+            p.b5 = -0.7616 * p.b5 - w * 0.0168980;
+            const out = p.b0 + p.b1 + p.b2 + p.b3 + p.b4 + p.b5 + p.b6 + w * 0.5362;
+            p.b6 = w * 0.115926;
+            return out * 0.11;
+          }
+          brownSample(){
+            const w = this.white();
+            this.brown = (this.brown + 0.02 * w) / 1.02;
+            return this.brown * 3.5;
+          }
+          binauralSample(){
+            const base = 220;
+            const beat = 4;
+            const freqL = base;
+            const freqR = base + beat;
+            const incL = 2 * Math.PI * freqL / sampleRate;
+            const incR = 2 * Math.PI * freqR / sampleRate;
+            const sL = Math.sin(this.phaseL);
+            const sR = Math.sin(this.phaseR);
+            this.phaseL += incL;
+            this.phaseR += incR;
+            if (this.phaseL > Math.PI * 2) this.phaseL -= Math.PI * 2;
+            if (this.phaseR > Math.PI * 2) this.phaseR -= Math.PI * 2;
+            return { l: sL * 0.18, r: sR * 0.18 };
+          }
+          oceanSample(){
+            const wL = this.white();
+            const wR = this.white();
+            this.oceanLpL = this.oceanLpL + (wL - this.oceanLpL) * 0.02;
+            this.oceanLpR = this.oceanLpR + (wR - this.oceanLpR) * 0.02;
+            const lfoL = (Math.sin(this.oceanLfoL) + 1) * 0.5;
+            const lfoR = (Math.sin(this.oceanLfoR) + 1) * 0.5;
+            this.oceanLfoL += 2 * Math.PI * 0.10 / sampleRate;
+            this.oceanLfoR += 2 * Math.PI * 0.09 / sampleRate;
+            return {
+              l: this.oceanLpL * (0.12 + 0.6 * lfoL),
+              r: this.oceanLpR * (0.12 + 0.6 * lfoR)
+            };
+          }
+          process(inputs, outputs) {
+            const output = outputs[0];
+            const ch0 = output[0];
+            const ch1 = output[1] || output[0];
+            for (let i=0; i<ch0.length; i++){
+              let sL = 0;
+              let sR = 0;
+              if (this.type === 'binaural') {
+                const s = this.binauralSample();
+                sL = s.l;
+                sR = s.r;
+              } else if (this.type === 'ocean') {
+                const s = this.oceanSample();
+                sL = s.l;
+                sR = s.r;
+              } else if (this.type === 'white') {
+                const s = this.white() * 0.20;
+                sL = s;
+                sR = s;
+              } else if (this.type === 'pink') {
+                const s = this.pinkSample();
+                sL = s;
+                sR = s;
+              } else {
+                const s = this.brownSample();
+                sL = s;
+                sR = s;
+              }
+              ch0[i] = sL;
+              ch1[i] = sR;
+            }
+            return true;
+          }
+        }
+        registerProcessor('noise-processor', NoiseProcessor);
+      `;
+
+      if (!audioCtx.audioWorklet) throw new Error(I18N[currentLang].errWorkletUnsupported);
+
+      const blob = new Blob([workletSource], { type: 'application/javascript' });
+      const url = URL.createObjectURL(blob);
+      try {
+        await audioCtx.audioWorklet.addModule(url);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+
+      const node = new AudioWorkletNode(audioCtx, 'noise-processor', {
+        numberOfInputs: 0,
+        numberOfOutputs: 1,
+        outputChannelCount: [2],
+      });
+
+      // push initial type
+      node.port.postMessage({ type: $type.value });
+      return node;
+    }
+
+    async function ensureAudioGraph(){
+      if (ctx) return;
+
+      clearErr();
+      setStatus('statusInit');
+
+      // IMPORTANT: create AudioContext only on user gesture (we are inside button click)
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+      // Master shaping (HQ feel)
+      const hp = ctx.createBiquadFilter();
+      hp.type = "highpass";
+      hp.frequency.value = 18;
+
+      const lp = ctx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 14000;
+
+      gain = ctx.createGain();
+      gain.gain.value = 0.0;
+
+      // Try Worklet, fallback to ScriptProcessor
+      try {
+        sourceNode = await makeAudioWorkletNoise(ctx);
+        techMode = 'worklet';
+        $techline.textContent = I18N[currentLang].techlineWorklet;
+      } catch (e) {
+        console.warn("AudioWorklet failed, fallback to ScriptProcessor:", e);
+        sourceNode = makeScriptProcessorNoise(ctx);
+        techMode = 'fallback';
+        $techline.textContent = I18N[currentLang].techlineFallback;
+        // Show reason once (useful for debugging)
+        showErr(I18N[currentLang].errWorkletInit + (e?.message || String(e)));
+      }
+
+      sourceNode.connect(hp);
+      hp.connect(lp);
+      lp.connect(gain);
+      gain.connect(ctx.destination);
+
+      // Keep running state controlled by start/stop
+      await ctx.suspend();
+
+      setStatus('statusReady');
+    }
+
+    async function start(){
+      await ensureAudioGraph();
+
+      // Resume audio (must be user gesture)
+      if (ctx.state === "suspended") await ctx.resume();
+
+      // Update type
+      if (sourceNode && sourceNode.port) {
+        sourceNode.port.postMessage({ type: $type.value });
+      }
+
+      fadeTo(parseFloat($vol.value), 0.35);
+
+      playing = true;
+      setStatus('statusPlaying');
+      updateToggleLabel();
+
+      startCountdown(parseInt($timer.value, 10));
+    }
+
+    async function stop(viaTimer=false){
+      if (!ctx) return;
+      fadeTo(0.0, 0.45);
+      playing = false;
+      setStatus(viaTimer ? 'statusFadingTimer' : 'statusFading');
+      updateToggleLabel();
+      clearTimer();
+
+      setTimeout(async () => {
+        if (!playing && ctx && ctx.state === "running") {
+          await ctx.suspend();
+          setStatus('statusStopped');
+        }
+      }, 520);
+    }
+
+    function initLanguage(){
+      const preferred = detectLanguage();
+      applyLanguage(preferred);
+    }
+
+    // UI
+    $toggle.addEventListener("click", () => playing ? stop(false) : start());
+    $type.addEventListener("change", () => {
+      if (sourceNode && sourceNode.port) sourceNode.port.postMessage({ type: $type.value });
+    });
+    $vol.addEventListener("input", () => {
+      if (!gain || !ctx) return;
+      if (playing) gain.gain.setValueAtTime(parseFloat($vol.value), now());
+    });
+    $timer.addEventListener("change", () => {
+      if (!playing) return;
+      startCountdown(parseInt($timer.value, 10));
+    });
+    $why.addEventListener("click", (e) => {
+      e.preventDefault();
+      alert(I18N[currentLang].whyAlert);
+    });
+    $langSwitch.addEventListener("click", (e) => {
+      const btn = e.target.closest('.lang-btn');
+      if (!btn) return;
+      applyLanguage(btn.dataset.lang);
+    });
+
+    initLanguage();
+    setStatus('statusReady');
+  </script>
+</body>
+</html>
+

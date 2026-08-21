@@ -1,773 +1,811 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>notbug.me - Noise</title>
-  <meta id="metaDescription" name="description" content="Synthetische Klaenge in Echtzeit: Brown, Binaural Beats, Meeresrauschen. Ohne Loops, ohne hoerbare Uebergaenge. Mit Timer und sanftem Fade." />
-  <style>
-    :root { color-scheme: dark; }
-    body{
-      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background:#0b0f14; color:#e9eef5;
-      display:flex; min-height:100vh; align-items:center; justify-content:center;
-      padding: 18px;
-    }
-    .card{
-      width:min(860px, 94vw);
-      background: #0f1722;
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 20px;
-      padding: 22px;
-      box-shadow: 0 12px 30px rgba(0,0,0,.35);
-    }
-    .topbar{
-      display:flex;
-      justify-content:flex-end;
-      margin-bottom: 8px;
-    }
-    h1{ margin:0 0 6px; font-size: 28px; letter-spacing:.2px; }
-    p{ margin:0 0 18px; color: rgba(233,238,245,.78); line-height:1.45; font-size: 18px; }
-    .row{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
-    .row + .row{ margin-top: 12px; }
-    button, select{
-      background:#121c2a; color:#e9eef5;
-      border:1px solid rgba(255,255,255,.10);
-      border-radius: 14px;
-      padding: 10px 12px;
-      font-size: 14px;
-    }
-    button{ cursor:pointer; font-weight: 700; padding: 10px 16px; }
-    button:disabled{ opacity:.55; cursor:not-allowed; }
-    label{ font-size: 12px; color: rgba(233,238,245,.78); display:flex; align-items:center; gap:10px; }
-    input[type="range"]{ width: 260px; }
-    .pill{
-      padding: 8px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.10);
-      background:#0c1420;
-      color: rgba(233,238,245,.8);
-      font-size: 12px;
-    }
-    .spacer{ flex: 1 1 auto; }
-    .small{ font-size: 12px; color: rgba(233,238,245,.62); }
-    .lang-switch{ display:flex; gap:8px; }
-    .lang-btn{
-      display:inline-flex; align-items:center; gap:6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .lang-btn[aria-pressed="true"]{
-      background:#1a263a;
-      border-color: rgba(255,255,255,.25);
-    }
-    .lang-code{ letter-spacing: .4px; }
-    .flag{
-      width: 18px; height: 12px;
-      border-radius: 2px;
-      border: 1px solid rgba(0,0,0,.35);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.15);
-    }
-    .flag.de{
-      background: linear-gradient(to bottom, #000 0 33%, #dd0000 33% 66%, #ffce00 66% 100%);
-    }
-    .flag.en{
-      background:
-        linear-gradient(to right, transparent 0 40%, #c8102e 40% 60%, transparent 60% 100%),
-        linear-gradient(to bottom, transparent 0 40%, #c8102e 40% 60%, transparent 60% 100%),
-        #ffffff;
-    }
-    .play-btn{
-      width: 56px; height: 56px;
-      border-radius: 50%;
-      padding: 0;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      background:#0f1a12;
-      border:1px solid rgba(255,255,255,.12);
-      position: relative;
-    }
-    .play-btn.is-playing{
-      box-shadow:
-        0 0 0 2px rgba(255,255,255,.08),
-        0 0 18px rgba(229,83,75,.35);
-    }
-    .play-btn .icon{
-      position:absolute;
-      display:block;
-    }
-    .icon-play{
-      width: 0; height: 0;
-      border-top: 10px solid transparent;
-      border-bottom: 10px solid transparent;
-      border-left: 16px solid #2dd76f;
-      transform: translateX(3px);
-    }
-    .play-btn .icon-stop{
-      width: 16px; height: 16px;
-      background:#e5534b;
-      border-radius: 3px;
-      display:none;
-    }
-    .play-btn.is-playing .icon-play{ display:none; }
-    .play-btn.is-playing .icon-stop{ display:block; }
-    .sr-only{
-      position:absolute;
-      width:1px; height:1px;
-      padding:0; margin:-1px;
-      overflow:hidden; clip:rect(0,0,0,0);
-      white-space:nowrap; border:0;
-    }
-    .err{
-      margin-top: 12px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,120,120,.25);
-      background: rgba(255,80,80,.06);
-      color: rgba(255,190,190,.95);
-      font-size: 12px;
-      display:none;
-      white-space: pre-wrap;
-    }
-    a{ color: rgba(233,238,245,.78); text-decoration: none; border-bottom: 1px dotted rgba(233,238,245,.25); }
-    a:hover{ color: rgba(233,238,245,.95); }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MF Radio</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📻</text></svg>" />
+<style>
+  :root{
+    --wood-hi:#7a4a2a; --wood:#552f18; --wood-lo:#3a1e0e;
+    --chrome-1:#f4f6f8; --chrome-2:#9aa4ad; --chrome-3:#5c666f;
+    --neon:#ff4fd8; --neon-soft:rgba(255,79,216,.55);
+    --led-amber:#ffb02e; --led-green:#3dff8b; --led-red:#ff4040;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background:
+      radial-gradient(120% 90% at 50% 18%, #1b1322 0%, #0e0a14 45%, #060409 100%);
+    color:#e9eef5;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding: 28px 14px 40px;
+    overflow-x:hidden;
+  }
+  /* checkered floor */
+  body::before{
+    content:""; position:fixed; left:0; right:0; bottom:0; height:34vh; z-index:0;
+    background:
+      repeating-conic-gradient(#141019 0% 25%, #0a070d 0% 50%);
+    background-size: 84px 84px;
+    -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,.9), transparent);
+            mask-image: linear-gradient(to top, rgba(0,0,0,.9), transparent);
+    pointer-events:none;
+  }
+
+  .scene{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; }
+
+  /* ================= CABINET ================= */
+  .cabinet{
+    position:relative;
+    width:min(440px, 94vw);
+    border-radius: 34px 34px 14px 14px / 90px 90px 14px 14px;
+    background:
+      repeating-linear-gradient(94deg,
+        rgba(0,0,0,.16) 0 3px, rgba(255,255,255,.05) 3px 6px,
+        rgba(0,0,0,.10) 6px 11px, rgba(0,0,0,.20) 11px 15px),
+      linear-gradient(180deg, var(--wood-hi) 0%, var(--wood) 40%, var(--wood-lo) 100%);
+    border: 3px solid #2a150a;
+    box-shadow:
+      0 0 0 3px #c7ccd2,
+      0 0 0 6px #4d565e,
+      0 30px 60px rgba(0,0,0,.75),
+      0 0 90px rgba(255,79,216,.10);
+    padding: 18px 18px 14px;
+    filter: drop-shadow(0 0 34px rgba(255,79,216,.12));
+  }
+  /* floor shadow */
+  .cabinet::after{
+    content:""; position:absolute; left:8%; right:8%; bottom:-26px; height:34px;
+    background: radial-gradient(50% 100% at 50% 0%, rgba(0,0,0,.7), transparent 70%);
+    z-index:-1;
+  }
+
+  /* ================= ARCHED GLASS ================= */
+  .arch{
+    position:relative;
+    border-radius: 50% 50% 12px 12px / 78% 78% 12px 12px;
+    overflow:hidden;
+    background:
+      radial-gradient(90% 55% at 50% 0%, rgba(255,190,110,.30), transparent 60%),
+      radial-gradient(120% 90% at 50% 30%, #171020 0%, #0b0712 55%, #060309 100%);
+    border: 4px solid;
+    border-color: var(--chrome-1) var(--chrome-3) var(--chrome-2) var(--chrome-1);
+    box-shadow: inset 0 0 34px rgba(0,0,0,.9), 0 2px 0 rgba(255,255,255,.15);
+    padding: 26px 16px 18px;
+  }
+  /* warm spotlight sweep */
+  .arch::before{
+    content:""; position:absolute; inset:0;
+    background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.07) 46%, rgba(255,255,255,.02) 54%, transparent 70%);
+    pointer-events:none;
+  }
+
+  .neon-sign{
+    text-align:center;
+    font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+    font-size: clamp(34px, 11vw, 46px);
+    letter-spacing: .14em;
+    color:#fff0fb;
+    text-shadow:
+      0 0 6px  #fff,
+      0 0 14px var(--neon),
+      0 0 30px var(--neon),
+      0 0 60px var(--neon-soft),
+      0 0 90px var(--neon-soft);
+    user-select:none;
+    animation: neonFlicker 6s infinite;
+    margin-bottom: 14px;
+  }
+  @keyframes neonFlicker{
+    0%,100%{ opacity:1; } 92%{ opacity:1; } 93%{ opacity:.55; } 94%{ opacity:1; }
+    96%{ opacity:.75; } 97%{ opacity:1; }
+  }
+
+  /* ---------- record + tonearm ---------- */
+  .record-stage{
+    position:relative;
+    width:76%; margin: 4px auto 0;
+    aspect-ratio: 1/1;
+  }
+  .record{
+    position:absolute; inset:0; border-radius:50%;
+    background:
+      radial-gradient(circle at 34% 30%, rgba(255,255,255,.16), transparent 42%),
+      repeating-radial-gradient(circle at 50% 50%,
+        #0d0d10 0 2px, #17171c 2px 4px, #0d0d10 4px 6px);
+    box-shadow: 0 0 34px rgba(0,0,0,.85), inset 0 0 44px rgba(0,0,0,.9);
+    animation: spin 1.8s linear infinite;
+    animation-play-state: paused;
+  }
+  .cabinet.is-playing .record{ animation-play-state: running; }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+  .record .label{
+    position:absolute; inset:33%; border-radius:50%;
+    background:
+      radial-gradient(circle at 35% 30%, rgba(255,255,255,.35), transparent 45%),
+      linear-gradient(160deg, #ff5fd0 0%, #b0147f 55%, #6d0b4c 100%);
+    box-shadow: inset 0 0 12px rgba(0,0,0,.55), 0 0 0 3px #1a0a12;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .record .label b{
+    font-family: Impact, "Arial Narrow Bold", sans-serif;
+    font-size: clamp(16px, 5vw, 22px);
+    letter-spacing:.12em; color:#fff3fa;
+    text-shadow: 0 0 8px rgba(255,255,255,.8);
+    transform: translateY(-14%);
+  }
+  .record .label::after{
+    content:""; position:absolute; left:50%; top:50%; width:9%; height:9%;
+    transform:translate(-50%,-50%); border-radius:50%;
+    background:#0b0709; box-shadow: 0 0 0 2px #3d2a33;
+  }
+
+  .tonearm{
+    position:absolute; top:4%; right:2%;
+    width:14%; height:14%;
+    transform-origin: 50% 50%;
+    transform: rotate(-24deg);
+    transition: transform 1.1s cubic-bezier(.6,-0.2,.3,1.3);
+    z-index:3;
+    pointer-events:none;
+  }
+  .cabinet.has-track .tonearm{ transform: rotate(38deg); }
+  .tonearm .pivot{
+    position:absolute; inset:0; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, var(--chrome-1), var(--chrome-2) 55%, var(--chrome-3));
+    box-shadow: 0 2px 6px rgba(0,0,0,.6), inset 0 -2px 4px rgba(0,0,0,.4);
+  }
+  .tonearm .rod{
+    position:absolute; left:50%; top:50%;
+    width:5px; height:310%;
+    transform: translate(-50%,0);
+    border-radius:4px;
+    background: linear-gradient(90deg, var(--chrome-3), var(--chrome-1) 45%, var(--chrome-2));
+    box-shadow: 0 0 6px rgba(0,0,0,.5);
+  }
+  .tonearm .head{
+    position:absolute; left:50%; top:308%;
+    width:15px; height:24px; transform: translate(-50%,0) rotate(18deg);
+    border-radius: 4px 4px 7px 7px;
+    background: linear-gradient(160deg, var(--chrome-1), var(--chrome-3));
+    box-shadow: 0 2px 5px rgba(0,0,0,.6);
+  }
+
+  /* ================= MARQUEE / LED ================= */
+  .marquee{
+    margin-top: 16px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #050505, #101010 60%, #070707);
+    border: 3px solid;
+    border-color: var(--chrome-2) var(--chrome-3) var(--chrome-1) var(--chrome-2);
+    box-shadow: inset 0 2px 14px rgba(0,0,0,.95);
+    padding: 10px 12px 12px;
+  }
+  .led-track{
+    height: 40px; overflow:hidden; position:relative;
+    display:flex; align-items:center; justify-content:center;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,176,46,.05) 0 2px, transparent 2px 5px),
+      #0a0602;
+    border-radius: 8px;
+    border: 1px solid #241708;
+    box-shadow: inset 0 0 18px rgba(0,0,0,.9), inset 0 0 8px rgba(255,176,46,.08);
+    --scroll-w: 0px; --wrap-w: 0px;
+  }
+  .led-track .inner{
+    white-space: nowrap;
+    font-family: "Courier New", ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: .18em;
+    color: var(--led-amber);
+    text-shadow: 0 0 6px rgba(255,176,46,.9), 0 0 18px rgba(255,120,20,.5);
+  }
+  .led-track.scrolling .inner{
+    animation: marquee var(--speed,9s) linear infinite;
+  }
+  @keyframes marquee{
+    from{ transform: translateX(0); }
+    to{ transform: translateX(calc(var(--scroll-w) * -1 - var(--wrap-w))); }
+  }
+  .led-row{
+    margin-top: 9px;
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+  }
+  .digits{ display:flex; gap:4px; }
+  .digit{
+    width:26px; height:34px; display:flex; align-items:center; justify-content:center;
+    background:#0a0602; border:1px solid #241708; border-radius:5px;
+    font-family:"Courier New", monospace; font-weight:700; font-size:22px;
+    color:var(--led-amber);
+    text-shadow: 0 0 6px rgba(255,176,46,.9), 0 0 16px rgba(255,120,20,.5);
+    box-shadow: inset 0 0 10px rgba(0,0,0,.9);
+  }
+  .digit.dim{ color:rgba(255,176,46,.18); text-shadow:none; }
+  .status-led{
+    font-family:"Courier New", monospace; font-weight:700; font-size:12px;
+    letter-spacing:.14em; color:var(--led-green);
+    text-shadow: 0 0 8px rgba(61,255,139,.8);
+    display:flex; align-items:center; gap:7px;
+  }
+  .status-led::before{
+    content:""; width:9px; height:9px; border-radius:50%;
+    background: var(--led-green);
+    box-shadow: 0 0 8px var(--led-green), 0 0 16px rgba(61,255,139,.6);
+  }
+  .status-led.standby{ color:rgba(255,176,46,.25); text-shadow:none; }
+  .status-led.standby::before{ background:#3a2b12; box-shadow:none; }
+  .status-led.paused{ color:var(--led-amber); text-shadow:0 0 8px rgba(255,176,46,.8); }
+  .status-led.paused::before{ background:var(--led-amber); box-shadow:0 0 8px rgba(255,176,46,.7); animation: blink 1s steps(2) infinite; }
+  @keyframes blink{ 50%{ opacity:.25; } }
+
+  /* ================= CONTROL PANEL ================= */
+  .panel{
+    position:relative;
+    margin-top: 14px;
+    border-radius: 12px;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px),
+      linear-gradient(180deg, #d7dde2, #aab3ba 45%, #8b959d);
+    border: 2px solid #525c64;
+    box-shadow: inset 0 2px 3px rgba(255,255,255,.7), inset 0 -6px 12px rgba(0,0,0,.25), 0 3px 8px rgba(0,0,0,.4);
+    padding: 14px 14px 16px;
+    display:grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 12px 14px;
+    align-items:center;
+  }
+  .screw{
+    position:absolute; width:11px; height:11px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #f2f5f7, #7b848c 60%, #4a525a);
+    box-shadow: inset 0 -1px 2px rgba(0,0,0,.5);
+  }
+  .screw::after{
+    content:""; position:absolute; left:15%; right:15%; top:46%; height:1.5px;
+    background:#3a424a; transform: rotate(38deg);
+  }
+  .screw.tl{ top:6px; left:6px; } .screw.tr{ top:6px; right:6px; }
+  .screw.bl{ bottom:6px; left:6px; } .screw.br{ bottom:6px; right:6px; }
+
+  .vu-box{
+    grid-column:1 / 2; grid-row:1 / 2;
+    background:#071007;
+    border-radius:8px; border:2px solid #4a525a;
+    box-shadow: inset 0 0 12px rgba(0,0,0,.9);
+    padding:6px 8px 4px;
+  }
+  .vu-box canvas{ display:block; width:100%; height:42px; }
+  .vu-box .vu-label{
+    font-family:"Courier New", monospace; font-size:9px; font-weight:700;
+    letter-spacing:.3em; color:#5f7a68; text-align:center; margin-top:2px;
+  }
+
+  .knob-col{
+    grid-column:2 / 3; grid-row:1 / 3;
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+  }
+  .knob{
+    --rot:-135deg;
+    position:relative; width:74px; height:74px; border-radius:50%;
+    background:
+      radial-gradient(circle at 32% 28%, #fff, #cfd6db 30%, #8f99a1 62%, #59636b);
+    border:2px solid #39424a;
+    box-shadow: 0 5px 12px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,255,255,.8), inset 0 -6px 10px rgba(0,0,0,.35);
+    cursor: ns-resize; touch-action:none;
+    user-select:none;
+  }
+  .knob .cap{
+    position:absolute; inset:9px; border-radius:50%;
+    background:
+      conic-gradient(from 0deg, #6a747c, #cdd5da 25%, #6a747c 50%, #cdd5da 75%, #6a747c);
+    box-shadow: inset 0 2px 4px rgba(255,255,255,.6), inset 0 -4px 8px rgba(0,0,0,.4);
+    transform: rotate(var(--rot));
+    transition: transform .08s linear;
+  }
+  .knob .pointer{
+    position:absolute; left:50%; top:5px; width:4px; height:16px;
+    transform: translateX(-50%);
+    border-radius:3px; background:#202830;
+    box-shadow: 0 0 3px rgba(0,0,0,.5);
+  }
+  .knob .tick{
+    position:absolute; inset:-7px; border-radius:50%;
+    background:
+      repeating-conic-gradient(from -135deg, rgba(0,0,0,.55) 0deg 2deg, transparent 2deg 36deg);
+    -webkit-mask: radial-gradient(circle, transparent 62%, #000 63% 71%, transparent 72%);
+            mask: radial-gradient(circle, transparent 62%, #000 63% 71%, transparent 72%);
+    pointer-events:none;
+  }
+  .knob-label{
+    font-family:"Courier New", monospace; font-size:9px; font-weight:700;
+    letter-spacing:.28em; color:#39424a;
+  }
+
+  .btn-row{
+    grid-column:1 / 2; grid-row:2 / 3;
+    display:flex; gap:14px; align-items:center; justify-content:center;
+  }
+  .pbtn{
+    --btn-hi:#fff; --btn-mid:#d94b4b; --btn-lo:#8c1616;
+    position:relative;
+    width:64px; height:64px; border-radius:50%;
+    border:2px solid #2c3339;
+    background: radial-gradient(circle at 32% 28%, var(--btn-hi), var(--btn-mid) 42%, var(--btn-lo) 78%, #5e0d0d);
+    box-shadow: 0 6px 12px rgba(0,0,0,.55), inset 0 2px 3px rgba(255,255,255,.7), inset 0 -8px 12px rgba(0,0,0,.45);
+    color:#fff; cursor:pointer;
+    font-family:"Courier New", monospace; font-weight:700; font-size:11px; letter-spacing:.1em;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    transition: transform .05s ease, box-shadow .05s ease;
+  }
+  .pbtn .glyph{ font-size:20px; line-height:1; text-shadow:0 1px 2px rgba(0,0,0,.5); }
+  .pbtn:active{ transform: translateY(3px); box-shadow: 0 2px 5px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,255,255,.6); }
+  .pbtn.amber{ --btn-mid:#e8a52e; --btn-lo:#8a5a0d; --btn-hi:#ffe9c0; }
+
+  /* ================= COIN DOOR ================= */
+  .coin-door{
+    margin-top: 14px;
+    border-radius: 12px;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 2px, transparent 2px 5px),
+      linear-gradient(180deg, #2b241a, #1d1811 60%, #141009);
+    border: 2px solid #0c0906;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,.8), inset 0 0 30px rgba(255,176,46,.04);
+    padding: 12px 14px;
+    display:flex; align-items:center; justify-content:center; gap:16px;
+  }
+  .coin-slot{
+    width:6px; height:44px; border-radius:4px;
+    background: linear-gradient(90deg,#000,#1c1c1c 50%,#000);
+    box-shadow: inset 0 0 6px #000, 0 0 0 3px #3c342a, 0 0 0 5px #17130d;
+    transform: rotate(90deg); width:44px; height:6px;
+  }
+  .coin-btn{
+    font-family:"Courier New", monospace; font-weight:700; font-size:13px; letter-spacing:.16em;
+    color: var(--led-amber);
+    background: radial-gradient(ellipse at 50% 30%, rgba(255,176,46,.16), rgba(255,176,46,.04) 70%), #120d06;
+    border:1px solid rgba(255,176,46,.4);
+    border-radius: 999px;
+    padding: 13px 22px;
+    cursor:pointer;
+    text-shadow: 0 0 10px rgba(255,176,46,.9);
+    box-shadow: 0 0 22px rgba(255,176,46,.15), inset 0 0 14px rgba(255,176,46,.08);
+    animation: coinPulse 1.8s ease-in-out infinite;
+    transition: transform .08s ease;
+  }
+  .coin-btn:hover{ background: radial-gradient(ellipse at 50% 30%, rgba(255,176,46,.28), rgba(255,176,46,.08) 70%), #120d06; }
+  .coin-btn:active{ transform: scale(.97); }
+  .coin-btn.lit{
+    color: var(--led-green); border-color: rgba(61,255,139,.5);
+    text-shadow: 0 0 10px rgba(61,255,139,.9);
+    box-shadow: 0 0 22px rgba(61,255,139,.2), inset 0 0 14px rgba(61,255,139,.1);
+    animation:none; cursor:default;
+  }
+  @keyframes coinPulse{ 0%,100%{ box-shadow: 0 0 10px rgba(255,176,46,.1), inset 0 0 10px rgba(255,176,46,.05); }
+    50%{ box-shadow: 0 0 30px rgba(255,176,46,.3), inset 0 0 18px rgba(255,176,46,.12); } }
+
+  .hint{
+    margin-top: 18px;
+    font-family:"Courier New", monospace; font-size:11px; letter-spacing:.2em;
+    color: rgba(233,238,245,.4);
+    text-align:center;
+  }
+  .hint b{ color: rgba(255,176,46,.75); font-weight:700; }
+</style>
 </head>
-
 <body>
-  <div class="card">
-    <div class="topbar">
-      <div id="langSwitch" class="lang-switch" role="group" aria-label="Sprache">
-        <button id="langDe" class="lang-btn" type="button" data-lang="de" aria-pressed="true">
-          <span class="flag de" aria-hidden="true"></span>
-          <span class="lang-code">DE</span>
-        </button>
-        <button id="langEn" class="lang-btn" type="button" data-lang="en" aria-pressed="false">
-          <span class="flag en" aria-hidden="true"></span>
-          <span class="lang-code">EN</span>
-        </button>
+  <div class="scene">
+    <div class="cabinet" id="cabinet">
+
+      <!-- arched glass -->
+      <div class="arch">
+        <div class="neon-sign">MF&nbsp;RADIO</div>
+        <div class="record-stage">
+          <div class="record" id="record">
+            <div class="label"><b>MF</b></div>
+          </div>
+          <div class="tonearm">
+            <div class="rod"></div><div class="head"></div><div class="pivot"></div>
+          </div>
+        </div>
       </div>
+
+      <!-- LED marquee -->
+      <div class="marquee">
+        <div class="led-track" id="trackLed">
+          <div class="inner" id="trackInner">★ WELCOME TO MF RADIO ★</div>
+        </div>
+        <div class="led-row">
+          <div class="digits" aria-label="track number">
+            <div class="digit dim" id="d0">0</div>
+            <div class="digit dim" id="d1">0</div>
+            <div class="digit dim" id="d2">0</div>
+          </div>
+          <div class="status-led standby" id="statusLed">STANDBY</div>
+        </div>
+      </div>
+
+      <!-- control panel -->
+      <div class="panel">
+        <span class="screw tl"></span><span class="screw tr"></span>
+        <span class="screw bl"></span><span class="screw br"></span>
+
+        <div class="vu-box">
+          <canvas id="vu"></canvas>
+          <div class="vu-label">SIGNAL · VU</div>
+        </div>
+
+        <div class="knob-col">
+          <div class="knob" id="knob" role="slider" aria-label="volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80" tabindex="0">
+            <div class="tick"></div><div class="cap"></div><div class="pointer"></div>
+          </div>
+          <div class="knob-label">VOLUME</div>
+        </div>
+
+        <div class="btn-row">
+          <button class="pbtn" id="playBtn" title="Play / Pause  (Space)">
+            <span class="glyph" id="playGlyph">▶</span><span id="playCaption">PLAY</span>
+          </button>
+          <button class="pbtn amber" id="nextBtn" title="Next song  (N)">
+            <span class="glyph">⏭</span><span>NEXT</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- coin door -->
+      <div class="coin-door">
+        <div class="coin-slot"></div>
+        <button class="coin-btn" id="coinBtn">INSERT COIN · START</button>
+      </div>
+
     </div>
-    <h1>notbug.me</h1>
-    <p id="lead">Studio-saubere synthetische Klaenge. <b>Keine Loops</b>, keine hoerbaren Uebergaenge. Sanftes Fade und Timer.</p>
-
-    <div class="row">
-      <button id="toggle" class="play-btn" type="button" aria-label="Start">
-        <span class="icon icon-play" aria-hidden="true"></span>
-        <span class="icon icon-stop" aria-hidden="true"></span>
-        <span class="sr-only" id="toggleLabel">Start</span>
-      </button>
-
-      <label>
-        <span id="labelType">Sound</span>
-        <select id="type">
-          <option id="optBrown" value="brown">Brown (tief & beruhigend)</option>
-          <option id="optBinaural" value="binaural">Binaural Beats (Entspannung/Schlafen)</option>
-          <option id="optOcean" value="ocean">Meeresrauschen (sanft)</option>
-        </select>
-      </label>
-
-      <label>
-        <span id="labelVolume">Volume</span>
-        <input id="vol" type="range" min="0" max="1" step="0.001" value="0.22" />
-      </label>
-
-      <span class="spacer"></span>
-      <span id="status" class="pill">ready</span>
-    </div>
-
-    <div class="row">
-      <label>
-        <span id="labelTimer">Timer</span>
-        <select id="timer">
-          <option id="optTimer0" value="0">kein</option>
-          <option id="optTimer30" value="1800">30 min</option>
-          <option id="optTimer60" value="3600">60 min</option>
-          <option id="optTimer90" value="5400">90 min</option>
-          <option id="optTimer120" value="7200">120 min</option>
-        </select>
-      </label>
-
-      <span id="timerLabel" class="small"></span>
-
-      <span class="spacer"></span>
-      <span class="small" id="tip">Tipp: Leise starten. Sound fuehlt sich schnell zu laut an.</span>
-    </div>
-
-    <div class="row" style="margin-top:18px">
-      <span class="small" id="techline">Technisch: Web Audio (AudioWorklet), realtime generiert. Keine Audiodateien.</span>
-      <span class="spacer"></span>
-      <span class="small"><a href="#" id="why">Warum keine Loops?</a></span>
-    </div>
-
-    <div class="err" id="errbox"></div>
+    <div class="hint"><b>SPACE</b> play/pause &nbsp;·&nbsp; <b>N</b> next song &nbsp;·&nbsp; <b>↑↓</b> volume</div>
   </div>
 
-  <script>
-    const I18N = {
-      de: {
-        title: "notbug.me - Noise",
-        description: "Synthetische Klaenge in Echtzeit: Brown, Binaural Beats, Meeresrauschen. Ohne Loops, ohne hoerbare Uebergaenge. Mit Timer und sanftem Fade.",
-        lead: "Studio-saubere synthetische Klaenge. <b>Keine Loops</b>, keine hoerbaren Uebergaenge. Sanftes Fade und Timer.",
-        labelType: "Sound",
-        typeBrown: "Brown (tief & beruhigend)",
-        typeBinaural: "Binaural Beats (Entspannung/Schlafen)",
-        typeOcean: "Meeresrauschen (sanft)",
-        labelVolume: "Lautstaerke",
-        labelLanguage: "Sprache",
-        labelTimer: "Timer",
-        timerNone: "kein",
-        timer30: "30 min",
-        timer60: "60 min",
-        timer90: "90 min",
-        timer120: "120 min",
-        buttonStart: "Start",
-        buttonStop: "Stop",
-        statusReady: "bereit",
-        statusInit: "init...",
-        statusPlaying: "laeuft",
-        statusFading: "blendet aus",
-        statusFadingTimer: "blendet aus (timer)",
-        statusStopped: "gestoppt",
-        tip: "Tipp: Leise starten. Sound fuehlt sich schnell zu laut an.",
-        techlineWorklet: "Technisch: Web Audio (AudioWorklet), realtime generiert. Keine Audiodateien.",
-        techlineFallback: "Technisch: Web Audio (Fallback ScriptProcessor), realtime generiert. Keine Audiodateien.",
-        why: "Warum keine Loops?",
-        whyAlert: "Hier wird kein Audiofile geloopt. Der Sound wird kontinuierlich in Echtzeit berechnet. Daher gibt es keinen Loop-Uebergang, weil es keinen Loop gibt.",
-        errWorkletUnsupported: "AudioWorklet wird von diesem Browser nicht unterstuetzt.",
-        errWorkletInit: "AudioWorklet konnte nicht initialisiert werden, Fallback aktiv.\nGrund:\n",
-        timerEndsIn: "endet in"
-      },
-      en: {
-        title: "notbug.me - Noise",
-        description: "Real-time synthetic sound: brown, binaural beats, ocean surf. No loops, no audible transitions. With timer and gentle fade.",
-        lead: "Studio-clean synthetic sound. <b>No loops</b>, no audible transitions. Gentle fade and timer.",
-        labelType: "Sound",
-        typeBrown: "Brown (deep & calming)",
-        typeBinaural: "Binaural beats (relax/sleep)",
-        typeOcean: "Ocean surf (gentle)",
-        labelVolume: "Volume",
-        labelLanguage: "Language",
-        labelTimer: "Timer",
-        timerNone: "none",
-        timer30: "30 min",
-        timer60: "60 min",
-        timer90: "90 min",
-        timer120: "120 min",
-        buttonStart: "Start",
-        buttonStop: "Stop",
-        statusReady: "ready",
-        statusInit: "init...",
-        statusPlaying: "playing",
-        statusFading: "fading out",
-        statusFadingTimer: "fading out (timer)",
-        statusStopped: "stopped",
-        tip: "Tip: Start quiet. Sound quickly feels too loud.",
-        techlineWorklet: "Tech: Web Audio (AudioWorklet), real-time generated. No audio files.",
-        techlineFallback: "Tech: Web Audio (Fallback ScriptProcessor), real-time generated. No audio files.",
-        why: "Why no loops?",
-        whyAlert: "No audio file is looped here. The sound is generated continuously in real time, so there is no loop transition because there is no loop.",
-        errWorkletUnsupported: "AudioWorklet is not supported by this browser.",
-        errWorkletInit: "AudioWorklet could not be initialized, fallback active.\nReason:\n",
-        timerEndsIn: "ends in"
-      }
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- track list ---------------- */
+  var BASE = "assets/";
+  var COUNT = 102;                                  // Motherfuckers_0.mp3 .. _101.mp3
+  var fileOf = function(n){ return BASE + "Motherfuckers_" + n + ".mp3"; };
+  var labelOf = function(n){
+    return "★  MOTHERFUCKERS · Nº " + String(n).padStart(3,"0") + "  ★";
+  };
+
+  /* ---------------- DOM ---------------- */
+  var $ = function(id){ return document.getElementById(id); };
+  var cabinet   = $("cabinet");
+  var trackLed  = $("trackLed");
+  var trackIn   = $("trackInner");
+  var digits    = [$("d0"), $("d1"), $("d2")];
+  var statusLed = $("statusLed");
+  var playBtn   = $("playBtn");
+  var playGlyph = $("playGlyph");
+  var playCaption = $("playCaption");
+  var nextBtn   = $("nextBtn");
+  var coinBtn   = $("coinBtn");
+  var knob      = $("knob");
+  var vu        = $("vu");
+  var vuCtx     = vu.getContext("2d");
+
+  /* ---------------- shuffle queue (no repeats until all played) ---------------- */
+  var queue = [], qi = 0;
+  function shuffle(arr){
+    for(var i = arr.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+  function refill(){
+    queue = shuffle(Array.from({length:COUNT}, function(_,i){ return i; }));
+    qi = 0;
+  }
+  function pick(exclude){
+    if(qi >= queue.length) refill();
+    var n = queue[qi++];
+    if(n === exclude && COUNT > 1){ refill(); n = queue[qi++]; }
+    return n;
+  }
+
+  /* ---------------- state ---------------- */
+  var state = "idle";           // idle | playing | paused
+  var volume = 0.8;
+  var cur = null;               // { el, num, gain }
+  var lastNum = null;
+  var started = false;
+
+  /* ---------------- audio engine ---------------- */
+  var els = [new Audio(), new Audio()];
+  var elIdx = 0;
+  els.forEach(function(el){ el.preload = "auto"; });
+
+  var AC = null, analyser = null, master = null, useWebAudio = false;
+  var gains = [null, null];
+  var freqData = null;
+
+  function ensureAudio(){
+    if(AC){ if(AC.state === "suspended") AC.resume(); return; }
+    try{
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      AC = new Ctx();
+      analyser = AC.createAnalyser();
+      analyser.fftSize = 64;                       // 32 bins
+      analyser.smoothingTimeConstant = 0.72;
+      master = AC.createGain();
+      master.gain.value = volume;
+      master.connect(analyser);
+      analyser.connect(AC.destination);
+      els.forEach(function(el, i){
+        var src = AC.createMediaElementSource(el);
+        gains[i] = AC.createGain();
+        gains[i].gain.value = 0;
+        src.connect(gains[i]);
+        gains[i].connect(master);
+      });
+      useWebAudio = true;
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+    }catch(e){
+      useWebAudio = false;
+      els.forEach(function(el){ el.volume = volume; });
+    }
+    if(AC && AC.state === "suspended") AC.resume();
+  }
+
+  function setVolume(v){
+    volume = Math.min(1, Math.max(0, v));
+    if(useWebAudio && master){
+      master.gain.setTargetAtTime(volume, AC.currentTime, 0.03);
+    }else{
+      els.forEach(function(el){ el.volume = volume; });
+    }
+    knob.style.setProperty("--rot", (-135 + 270 * volume) + "deg");
+    knob.setAttribute("aria-valuenow", Math.round(volume * 100));
+  }
+
+  function fadeOutEl(el, i, ms){
+    if(useWebAudio && gains[i]){
+      gains[i].gain.setTargetAtTime(0, AC.currentTime, ms / 3000);
+    }else{
+      var from = el.volume, t0 = performance.now();
+      (function step(){
+        var p = Math.min(1, (performance.now() - t0) / ms);
+        el.volume = from * (1 - p) * volume;
+        if(p < 1) requestAnimationFrame(step);
+      })();
+    }
+  }
+
+  function fadeInEl(el, i, ms){
+    if(useWebAudio && gains[i]){
+      gains[i].gain.cancelScheduledValues(AC.currentTime);
+      gains[i].gain.setValueAtTime(0, AC.currentTime);
+      gains[i].gain.setTargetAtTime(1, AC.currentTime, ms / 3000);
+    }else{
+      el.volume = 0;
+      var t0 = performance.now();
+      (function step(){
+        var p = Math.min(1, (performance.now() - t0) / ms);
+        el.volume = p * volume;
+        if(p < 1 && el.paused === false) requestAnimationFrame(step);
+      })();
+    }
+  }
+
+  function playTrack(num, firstPlay){
+    var i = elIdx; elIdx ^= 1;
+    var el = els[i];
+
+    // fade out the previous one
+    if(cur){
+      var old = cur;
+      fadeOutEl(old.el, i ^ 1, 700);
+      setTimeout(function(){
+        old.el.pause();
+        old.el.removeAttribute("src");
+        try{ old.el.load(); }catch(e){}
+      }, 900);
+      lastNum = old.num;
+    }
+
+    el.src = fileOf(num);
+    el.onended = function(){
+      if(cur && cur.el === el && state === "playing") next();
+    };
+    el.onerror = function(){
+      // skip missing/broken files after a short beat
+      setTimeout(function(){
+        if(cur && cur.el === el && state !== "idle") next();
+      }, 600);
     };
 
-    // -------- UI ----------
-    const $toggle = document.getElementById('toggle');
-    const $type = document.getElementById('type');
-    const $vol = document.getElementById('vol');
-    const $status = document.getElementById('status');
-    const $timer = document.getElementById('timer');
-    const $timerLabel = document.getElementById('timerLabel');
-    const $why = document.getElementById('why');
-    const $err = document.getElementById('errbox');
-    const $techline = document.getElementById('techline');
-    const $lead = document.getElementById('lead');
-    const $labelType = document.getElementById('labelType');
-    const $labelVolume = document.getElementById('labelVolume');
-    const $labelTimer = document.getElementById('labelTimer');
-    const $tip = document.getElementById('tip');
-    const $metaDescription = document.getElementById('metaDescription');
-    const $optBrown = document.getElementById('optBrown');
-    const $optBinaural = document.getElementById('optBinaural');
-    const $optOcean = document.getElementById('optOcean');
-    const $optTimer0 = document.getElementById('optTimer0');
-    const $optTimer30 = document.getElementById('optTimer30');
-    const $optTimer60 = document.getElementById('optTimer60');
-    const $optTimer90 = document.getElementById('optTimer90');
-    const $optTimer120 = document.getElementById('optTimer120');
-    const $langSwitch = document.getElementById('langSwitch');
-    const $langDe = document.getElementById('langDe');
-    const $langEn = document.getElementById('langEn');
-    const $toggleLabel = document.getElementById('toggleLabel');
+    fadeInEl(el, i, firstPlay ? 400 : 700);
+    var p = el.play();
+    if(p && p.catch) p.catch(function(){ /* needs user gesture – coin/start handles it */ });
 
-    let currentLang = 'de';
-    let statusKey = 'statusReady';
-    let techMode = 'worklet';
+    cur = { el: el, num: num, gain: gains[i] };
+    state = "playing";
+    cabinet.classList.add("is-playing");
+    cabinet.classList.add("has-track");
+    setUi(num);
+  }
 
-    function detectLanguage(){
-      const langs = navigator.languages && navigator.languages.length
-        ? navigator.languages
-        : [navigator.language || 'en'];
-      return langs.some((l) => String(l).toLowerCase().startsWith('de')) ? 'de' : 'en';
-    }
-
-    function applyLanguage(lang){
-      if (!I18N[lang]) lang = 'en';
-      currentLang = lang;
-
-      const t = I18N[currentLang];
-      document.documentElement.lang = currentLang;
-      document.title = t.title;
-      $metaDescription.setAttribute('content', t.description);
-
-      $lead.innerHTML = t.lead;
-      $labelType.textContent = t.labelType;
-      $labelVolume.textContent = t.labelVolume;
-      $labelTimer.textContent = t.labelTimer;
-
-      $optBrown.textContent = t.typeBrown;
-      $optBinaural.textContent = t.typeBinaural;
-      $optOcean.textContent = t.typeOcean;
-
-      $optTimer0.textContent = t.timerNone;
-      $optTimer30.textContent = t.timer30;
-      $optTimer60.textContent = t.timer60;
-      $optTimer90.textContent = t.timer90;
-      $optTimer120.textContent = t.timer120;
-
-      $why.textContent = t.why;
-      $tip.textContent = t.tip;
-      $techline.textContent = techMode === 'fallback' ? t.techlineFallback : t.techlineWorklet;
-      $langSwitch.setAttribute('aria-label', t.labelLanguage);
-      $langDe.setAttribute('aria-pressed', String(currentLang === 'de'));
-      $langEn.setAttribute('aria-pressed', String(currentLang === 'en'));
-
-      updateToggleLabel();
-      setStatus(statusKey);
-      updateTimerLabel();
-    }
-
-    function setStatus(key){
-      statusKey = key;
-      $status.textContent = I18N[currentLang][key] || key;
-    }
-
-    function showErr(msg){
-      $err.style.display = "block";
-      $err.textContent = msg;
-    }
-    function clearErr(){
-      $err.style.display = "none";
-      $err.textContent = "";
-    }
-
-    function updateToggleLabel(){
-      const t = I18N[currentLang];
-      const label = playing ? t.buttonStop : t.buttonStart;
-      $toggleLabel.textContent = label;
-      $toggle.setAttribute('aria-label', label);
-      $toggle.classList.toggle('is-playing', playing);
-    }
-
-    function updateTimerLabel(){
-      if (!endsAt) {
-        $timerLabel.textContent = "";
-        return;
+  /* ---------------- UI ---------------- */
+  function setUi(num){
+    trackIn.textContent = labelOf(num);
+    requestAnimationFrame(function(){
+      var sw = trackIn.scrollWidth, ww = trackLed.clientWidth;
+      if(sw > ww + 20 && trackIn.textContent.length){
+        trackLed.style.setProperty("--scroll-w", sw + "px");
+        trackLed.style.setProperty("--wrap-w", ww + "px");
+        trackLed.style.setProperty("--speed", Math.max(6, sw / 60) + "s");
+        trackLed.classList.add("scrolling");
+      }else{
+        trackLed.classList.remove("scrolling");
       }
-      const leftMs = endsAt - Date.now();
-      if (leftMs <= 0) {
-        $timerLabel.textContent = "";
-        return;
-      }
-      const m = Math.floor(leftMs / 60000);
-      const s = Math.floor((leftMs % 60000) / 1000);
-      $timerLabel.textContent = `${I18N[currentLang].timerEndsIn} ${m}:${String(s).padStart(2,'0')}`;
-    }
-
-    // -------- audio state ----------
-    let ctx = null;
-    let gain = null;
-    let sourceNode = null;     // AudioWorkletNode OR ScriptProcessorNode
-    let playing = false;
-
-    let timerHandle = null;
-    let endsAt = 0;
-
-    function now(){ return ctx ? ctx.currentTime : 0; }
-
-    function fadeTo(target, seconds=0.35){
-      const t = now();
-      gain.gain.cancelScheduledValues(t);
-      gain.gain.setValueAtTime(gain.gain.value, t);
-      gain.gain.linearRampToValueAtTime(target, t + seconds);
-    }
-
-    function clearTimer(){
-      if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
-      endsAt = 0;
-      updateTimerLabel();
-    }
-
-    function startCountdown(seconds){
-      clearTimer();
-      if (!seconds) return;
-      endsAt = Date.now() + seconds * 1000;
-      timerHandle = setInterval(() => {
-        const leftMs = endsAt - Date.now();
-        if (leftMs <= 0) {
-          clearTimer();
-          stop(true);
-          return;
-        }
-        updateTimerLabel();
-      }, 250);
-    }
-
-    // -------- generators ----------
-    function makeScriptProcessorNoise(audioCtx){
-      // Fallback generator: ScriptProcessor (deprecated, aber funktioniert fast ueberall)
-      const bufferSize = 4096;
-      const node = audioCtx.createScriptProcessor(bufferSize, 0, 2);
-
-      let brown = 0.0;
-      let p = { b0:0, b1:0, b2:0, b3:0, b4:0, b5:0, b6:0 };
-      let phaseL = 0;
-      let phaseR = 0;
-      let oceanLpL = 0;
-      let oceanLpR = 0;
-      let oceanLfoL = 0;
-      let oceanLfoR = Math.PI * 0.5;
-      const sr = audioCtx.sampleRate;
-
-      function white(){ return Math.random()*2 - 1; }
-
-      function pinkSample(){
-        const w = white();
-        p.b0 = 0.99886 * p.b0 + w * 0.0555179;
-        p.b1 = 0.99332 * p.b1 + w * 0.0750759;
-        p.b2 = 0.96900 * p.b2 + w * 0.1538520;
-        p.b3 = 0.86650 * p.b3 + w * 0.3104856;
-        p.b4 = 0.55000 * p.b4 + w * 0.5329522;
-        p.b5 = -0.7616 * p.b5 - w * 0.0168980;
-        const out = p.b0 + p.b1 + p.b2 + p.b3 + p.b4 + p.b5 + p.b6 + w * 0.5362;
-        p.b6 = w * 0.115926;
-        return out * 0.11;
-      }
-
-      function brownSample(){
-        const w = white();
-        brown = (brown + 0.02 * w) / 1.02;
-        return brown * 3.5;
-      }
-
-      function binauralSample(){
-        const base = 220;
-        const beat = 4;
-        const freqL = base;
-        const freqR = base + beat;
-        const incL = 2 * Math.PI * freqL / sr;
-        const incR = 2 * Math.PI * freqR / sr;
-        const sL = Math.sin(phaseL);
-        const sR = Math.sin(phaseR);
-        phaseL += incL;
-        phaseR += incR;
-        if (phaseL > Math.PI * 2) phaseL -= Math.PI * 2;
-        if (phaseR > Math.PI * 2) phaseR -= Math.PI * 2;
-        return { l: sL * 0.18, r: sR * 0.18 };
-      }
-
-      function oceanSample(){
-        const wL = white();
-        const wR = white();
-        oceanLpL = oceanLpL + (wL - oceanLpL) * 0.02;
-        oceanLpR = oceanLpR + (wR - oceanLpR) * 0.02;
-        const lfoL = (Math.sin(oceanLfoL) + 1) * 0.5;
-        const lfoR = (Math.sin(oceanLfoR) + 1) * 0.5;
-        oceanLfoL += 2 * Math.PI * 0.10 / sr;
-        oceanLfoR += 2 * Math.PI * 0.09 / sr;
-        return {
-          l: oceanLpL * (0.12 + 0.6 * lfoL),
-          r: oceanLpR * (0.12 + 0.6 * lfoR)
-        };
-      }
-
-      node.onaudioprocess = (e) => {
-        const outL = e.outputBuffer.getChannelData(0);
-        const outR = e.outputBuffer.getChannelData(1);
-        const type = $type.value;
-        for (let i=0; i<outL.length; i++){
-          let sL = 0;
-          let sR = 0;
-          if (type === "binaural") {
-            const s = binauralSample();
-            sL = s.l;
-            sR = s.r;
-          } else if (type === "ocean") {
-            const s = oceanSample();
-            sL = s.l;
-            sR = s.r;
-          } else if (type === "pink") {
-            const s = pinkSample();
-            sL = s;
-            sR = s;
-          } else if (type === "white") {
-            const s = white() * 0.20;
-            sL = s;
-            sR = s;
-          } else {
-            const s = brownSample();
-            sL = s;
-            sR = s;
-          }
-          outL[i] = sL;
-          outR[i] = sR;
-        }
-      };
-
-      return node;
-    }
-
-    async function makeAudioWorkletNoise(audioCtx){
-      // Worklet source inline (Blob)
-      const workletSource = `
-        class NoiseProcessor extends AudioWorkletProcessor {
-          constructor() {
-            super();
-            this.type = 'brown';
-            this.brown = 0.0;
-            this.pink = { b0:0, b1:0, b2:0, b3:0, b4:0, b5:0, b6:0 };
-            this.phaseL = 0.0;
-            this.phaseR = 0.0;
-            this.oceanLpL = 0.0;
-            this.oceanLpR = 0.0;
-            this.oceanLfoL = 0.0;
-            this.oceanLfoR = Math.PI * 0.5;
-            this.port.onmessage = (e) => { if (e.data && e.data.type) this.type = e.data.type; };
-          }
-          white(){ return (Math.random() * 2 - 1); }
-          pinkSample(){
-            const p = this.pink;
-            const w = this.white();
-            p.b0 = 0.99886 * p.b0 + w * 0.0555179;
-            p.b1 = 0.99332 * p.b1 + w * 0.0750759;
-            p.b2 = 0.96900 * p.b2 + w * 0.1538520;
-            p.b3 = 0.86650 * p.b3 + w * 0.3104856;
-            p.b4 = 0.55000 * p.b4 + w * 0.5329522;
-            p.b5 = -0.7616 * p.b5 - w * 0.0168980;
-            const out = p.b0 + p.b1 + p.b2 + p.b3 + p.b4 + p.b5 + p.b6 + w * 0.5362;
-            p.b6 = w * 0.115926;
-            return out * 0.11;
-          }
-          brownSample(){
-            const w = this.white();
-            this.brown = (this.brown + 0.02 * w) / 1.02;
-            return this.brown * 3.5;
-          }
-          binauralSample(){
-            const base = 220;
-            const beat = 4;
-            const freqL = base;
-            const freqR = base + beat;
-            const incL = 2 * Math.PI * freqL / sampleRate;
-            const incR = 2 * Math.PI * freqR / sampleRate;
-            const sL = Math.sin(this.phaseL);
-            const sR = Math.sin(this.phaseR);
-            this.phaseL += incL;
-            this.phaseR += incR;
-            if (this.phaseL > Math.PI * 2) this.phaseL -= Math.PI * 2;
-            if (this.phaseR > Math.PI * 2) this.phaseR -= Math.PI * 2;
-            return { l: sL * 0.18, r: sR * 0.18 };
-          }
-          oceanSample(){
-            const wL = this.white();
-            const wR = this.white();
-            this.oceanLpL = this.oceanLpL + (wL - this.oceanLpL) * 0.02;
-            this.oceanLpR = this.oceanLpR + (wR - this.oceanLpR) * 0.02;
-            const lfoL = (Math.sin(this.oceanLfoL) + 1) * 0.5;
-            const lfoR = (Math.sin(this.oceanLfoR) + 1) * 0.5;
-            this.oceanLfoL += 2 * Math.PI * 0.10 / sampleRate;
-            this.oceanLfoR += 2 * Math.PI * 0.09 / sampleRate;
-            return {
-              l: this.oceanLpL * (0.12 + 0.6 * lfoL),
-              r: this.oceanLpR * (0.12 + 0.6 * lfoR)
-            };
-          }
-          process(inputs, outputs) {
-            const output = outputs[0];
-            const ch0 = output[0];
-            const ch1 = output[1] || output[0];
-            for (let i=0; i<ch0.length; i++){
-              let sL = 0;
-              let sR = 0;
-              if (this.type === 'binaural') {
-                const s = this.binauralSample();
-                sL = s.l;
-                sR = s.r;
-              } else if (this.type === 'ocean') {
-                const s = this.oceanSample();
-                sL = s.l;
-                sR = s.r;
-              } else if (this.type === 'white') {
-                const s = this.white() * 0.20;
-                sL = s;
-                sR = s;
-              } else if (this.type === 'pink') {
-                const s = this.pinkSample();
-                sL = s;
-                sR = s;
-              } else {
-                const s = this.brownSample();
-                sL = s;
-                sR = s;
-              }
-              ch0[i] = sL;
-              ch1[i] = sR;
-            }
-            return true;
-          }
-        }
-        registerProcessor('noise-processor', NoiseProcessor);
-      `;
-
-      if (!audioCtx.audioWorklet) throw new Error(I18N[currentLang].errWorkletUnsupported);
-
-      const blob = new Blob([workletSource], { type: 'application/javascript' });
-      const url = URL.createObjectURL(blob);
-      try {
-        await audioCtx.audioWorklet.addModule(url);
-      } finally {
-        URL.revokeObjectURL(url);
-      }
-
-      const node = new AudioWorkletNode(audioCtx, 'noise-processor', {
-        numberOfInputs: 0,
-        numberOfOutputs: 1,
-        outputChannelCount: [2],
-      });
-
-      // push initial type
-      node.port.postMessage({ type: $type.value });
-      return node;
-    }
-
-    async function ensureAudioGraph(){
-      if (ctx) return;
-
-      clearErr();
-      setStatus('statusInit');
-
-      // IMPORTANT: create AudioContext only on user gesture (we are inside button click)
-      ctx = new (window.AudioContext || window.webkitAudioContext)();
-
-      // Master shaping (HQ feel)
-      const hp = ctx.createBiquadFilter();
-      hp.type = "highpass";
-      hp.frequency.value = 18;
-
-      const lp = ctx.createBiquadFilter();
-      lp.type = "lowpass";
-      lp.frequency.value = 14000;
-
-      gain = ctx.createGain();
-      gain.gain.value = 0.0;
-
-      // Try Worklet, fallback to ScriptProcessor
-      try {
-        sourceNode = await makeAudioWorkletNoise(ctx);
-        techMode = 'worklet';
-        $techline.textContent = I18N[currentLang].techlineWorklet;
-      } catch (e) {
-        console.warn("AudioWorklet failed, fallback to ScriptProcessor:", e);
-        sourceNode = makeScriptProcessorNoise(ctx);
-        techMode = 'fallback';
-        $techline.textContent = I18N[currentLang].techlineFallback;
-        // Show reason once (useful for debugging)
-        showErr(I18N[currentLang].errWorkletInit + (e?.message || String(e)));
-      }
-
-      sourceNode.connect(hp);
-      hp.connect(lp);
-      lp.connect(gain);
-      gain.connect(ctx.destination);
-
-      // Keep running state controlled by start/stop
-      await ctx.suspend();
-
-      setStatus('statusReady');
-    }
-
-    async function start(){
-      await ensureAudioGraph();
-
-      // Resume audio (must be user gesture)
-      if (ctx.state === "suspended") await ctx.resume();
-
-      // Update type
-      if (sourceNode && sourceNode.port) {
-        sourceNode.port.postMessage({ type: $type.value });
-      }
-
-      fadeTo(parseFloat($vol.value), 0.35);
-
-      playing = true;
-      setStatus('statusPlaying');
-      updateToggleLabel();
-
-      startCountdown(parseInt($timer.value, 10));
-    }
-
-    async function stop(viaTimer=false){
-      if (!ctx) return;
-      fadeTo(0.0, 0.45);
-      playing = false;
-      setStatus(viaTimer ? 'statusFadingTimer' : 'statusFading');
-      updateToggleLabel();
-      clearTimer();
-
-      setTimeout(async () => {
-        if (!playing && ctx && ctx.state === "running") {
-          await ctx.suspend();
-          setStatus('statusStopped');
-        }
-      }, 520);
-    }
-
-    function initLanguage(){
-      const preferred = detectLanguage();
-      applyLanguage(preferred);
-    }
-
-    // UI
-    $toggle.addEventListener("click", () => playing ? stop(false) : start());
-    $type.addEventListener("change", () => {
-      if (sourceNode && sourceNode.port) sourceNode.port.postMessage({ type: $type.value });
     });
-    $vol.addEventListener("input", () => {
-      if (!gain || !ctx) return;
-      if (playing) gain.gain.setValueAtTime(parseFloat($vol.value), now());
+    var s = String(num).padStart(3, "0");
+    digits.forEach(function(d, k){
+      d.textContent = s[k];
+      d.classList.remove("dim");
     });
-    $timer.addEventListener("change", () => {
-      if (!playing) return;
-      startCountdown(parseInt($timer.value, 10));
-    });
-    $why.addEventListener("click", (e) => {
-      e.preventDefault();
-      alert(I18N[currentLang].whyAlert);
-    });
-    $langSwitch.addEventListener("click", (e) => {
-      const btn = e.target.closest('.lang-btn');
-      if (!btn) return;
-      applyLanguage(btn.dataset.lang);
-    });
+  }
+  function setStatus(){
+    if(state === "playing"){
+      statusLed.className = "status-led"; statusLed.textContent = "PLAYING";
+    }else if(state === "paused"){
+      statusLed.className = "status-led paused"; statusLed.textContent = "PAUSED";
+    }else{
+      statusLed.className = "status-led standby"; statusLed.textContent = "STANDBY";
+    }
+    if(state === "playing"){
+      playGlyph.textContent = "❚❚"; playCaption.textContent = "PAUSE";
+    }else{
+      playGlyph.textContent = "▶"; playCaption.textContent = started ? "PLAY" : "READY";
+    }
+  }
 
-    initLanguage();
-    setStatus('statusReady');
-  </script>
+  /* ---------------- actions ---------------- */
+  function start(){
+    if(started) return;
+    started = true;
+    coinBtn.classList.add("lit");
+    coinBtn.textContent = "★ 1 FREE PLAY ★";
+  }
+
+  function next(){
+    if(!started){ start(); ensureAudio(); }
+    ensureAudio();
+    var n = pick(cur ? cur.num : -1);
+    playTrack(n, false);
+  }
+
+  coinBtn.addEventListener("click", function(){
+    if(started) return;
+    start();
+    ensureAudio();
+    var n = pick(-1);
+    playTrack(n, true);
+    setStatus();
+  });
+
+  playBtn.addEventListener("click", function(){
+    if(state === "idle"){
+      if(!started){ start(); ensureAudio(); }
+      var n = pick(-1);
+      playTrack(n, true);
+      setStatus();
+      return;
+    }
+    if(state === "playing"){
+      cur.el.pause();
+      state = "paused";
+      cabinet.classList.remove("is-playing");
+    }else if(state === "paused"){
+      ensureAudio();
+      cur.el.play().catch(function(){});
+      state = "playing";
+      cabinet.classList.add("is-playing");
+    }
+    setStatus();
+  });
+
+  nextBtn.addEventListener("click", function(){
+    next();
+    setStatus();
+  });
+
+  /* keyboard */
+  window.addEventListener("keydown", function(e){
+    if(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    if(e.code === "Space"){ e.preventDefault(); playBtn.click(); }
+    else if(e.key === "n" || e.key === "N"){ nextBtn.click(); }
+    else if(e.key === "ArrowUp" || e.key === "ArrowRight"){ e.preventDefault(); setVolume(volume + 0.05); }
+    else if(e.key === "ArrowDown" || e.key === "ArrowLeft"){ e.preventDefault(); setVolume(volume - 0.05); }
+  });
+
+  /* ---------------- volume knob ---------------- */
+  var dragging = false, dragY = 0, dragV = 0;
+  knob.addEventListener("pointerdown", function(e){
+    dragging = true; dragY = e.clientY; dragV = volume;
+    knob.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  knob.addEventListener("pointermove", function(e){
+    if(!dragging) return;
+    setVolume(dragV + (dragY - e.clientY) / 150);
+  });
+  knob.addEventListener("pointerup",   function(){ dragging = false; });
+  knob.addEventListener("pointercancel",function(){ dragging = false; });
+  knob.addEventListener("wheel", function(e){
+    e.preventDefault();
+    setVolume(volume + (e.deltaY < 0 ? 0.05 : -0.05));
+  }, { passive:false });
+  knob.addEventListener("keydown", function(e){
+    if(e.key === "ArrowUp" || e.key === "ArrowRight"){ e.preventDefault(); e.stopPropagation(); setVolume(volume + 0.05); }
+    if(e.key === "ArrowDown" || e.key === "ArrowLeft"){ e.preventDefault(); e.stopPropagation(); setVolume(volume - 0.05); }
+  });
+  setVolume(volume);
+
+  /* ---------------- VU meter ---------------- */
+  var bars = 18, heights = new Array(bars).fill(0);
+  function sizeVU(){
+    var r = window.devicePixelRatio || 1;
+    var w = vu.clientWidth, h = vu.clientHeight;
+    if(vu.width !== w * r || vu.height !== h * r){
+      vu.width = w * r; vu.height = h * r;
+      vuCtx.setTransform(r, 0, 0, r, 0, 0);
+    }
+  }
+  function drawVU(){
+    requestAnimationFrame(drawVU);
+    sizeVU();
+    var w = vu.clientWidth, h = vu.clientHeight;
+    vuCtx.clearRect(0, 0, w, h);
+
+    var target = state === "playing" && useWebAudio ? 1 : 0;
+    var live = 0;
+    if(target && analyser){
+      analyser.getByteFrequencyData(freqData);
+      // energy across the lower bins
+      var sum = 0;
+      for(var b = 1; b < 9; b++) sum += freqData[b];
+      live = Math.min(1, (sum / (8 * 200)));
+    }
+
+    var bw = w / bars;
+    for(var i = 0; i < bars; i++){
+      // pseudo-spectrum: high bars in the middle, live level modulated
+      var shape = Math.sin((i / (bars - 1)) * Math.PI);
+      var goal = target ? Math.max(0, live * (0.35 + 0.75 * shape) - Math.random() * 0.08) : 0;
+      heights[i] += (goal - heights[i]) * (goal > heights[i] ? 0.5 : 0.18);
+      var bh = Math.max(2, heights[i] * (h - 6));
+      var x = i * bw + 2, y = h - 3 - bh;
+      var t = heights[i];
+      var color = t > 0.78 ? "#ff4040" : (t > 0.5 ? "#ff9a2e" : "#ffb02e");
+      vuCtx.fillStyle = color;
+      vuCtx.shadowColor = color;
+      vuCtx.shadowBlur = 6;
+      vuCtx.fillRect(x, y, bw - 4, bh);
+      vuCtx.shadowBlur = 0;
+    }
+    // baseline
+    vuCtx.fillStyle = "rgba(255,176,46,.25)";
+    vuCtx.fillRect(2, h - 2, w - 4, 1);
+  }
+  drawVU();
+  window.addEventListener("resize", function(){
+    if(trackLed.classList.contains("scrolling")) setUi(cur ? cur.num : 0);
+  });
+
+  setStatus();
+})();
+</script>
 </body>
 </html>
-
