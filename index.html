@@ -3,6 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="MF Radio is a retro-styled, shuffle-only web jukebox with 102 tracks, keyboard controls and seamless transitions." />
+<meta name="theme-color" content="#0e0a14" />
+<meta name="color-scheme" content="dark" />
+<meta property="og:title" content="MF Radio" />
+<meta property="og:description" content="Drop a coin and listen to 102 tracks in a retro web jukebox." />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="en_US" />
 <title>MF Radio</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📻</text></svg>" />
 <style>
@@ -21,7 +28,7 @@
       radial-gradient(120% 90% at 50% 18%, #1b1322 0%, #0e0a14 45%, #060409 100%);
     color:#e9eef5;
     min-height:100vh;
-    display:flex; align-items:center; justify-content:center;
+    display:flex; align-items:flex-start; justify-content:center;
     padding: 28px 14px 40px;
     overflow-x:hidden;
   }
@@ -36,7 +43,11 @@
     pointer-events:none;
   }
 
-  .scene{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; }
+  .scene{
+    position:relative; z-index:1; display:flex; flex-direction:column; align-items:center;
+  }
+
+  @media (min-height:950px){ body{ align-items:center; } }
 
   /* ================= CABINET ================= */
   .cabinet{
@@ -345,6 +356,9 @@
   .pbtn .glyph{ font-size:20px; line-height:1; text-shadow:0 1px 2px rgba(0,0,0,.5); }
   .pbtn:active{ transform: translateY(3px); box-shadow: 0 2px 5px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,255,255,.6); }
   .pbtn.amber{ --btn-mid:#e8a52e; --btn-lo:#8a5a0d; --btn-hi:#ffe9c0; }
+  .pbtn:focus-visible, .coin-btn:focus-visible, .knob:focus-visible{
+    outline:3px solid #fff; outline-offset:4px;
+  }
 
   /* ================= COIN DOOR ================= */
   .coin-door{
@@ -385,6 +399,7 @@
     box-shadow: 0 0 22px rgba(61,255,139,.2), inset 0 0 14px rgba(61,255,139,.1);
     animation:none; cursor:default;
   }
+  .coin-btn:disabled{ opacity:1; }
   @keyframes coinPulse{ 0%,100%{ box-shadow: 0 0 10px rgba(255,176,46,.1), inset 0 0 10px rgba(255,176,46,.05); }
     50%{ box-shadow: 0 0 30px rgba(255,176,46,.3), inset 0 0 18px rgba(255,176,46,.12); } }
 
@@ -395,6 +410,12 @@
     text-align:center;
   }
   .hint b{ color: rgba(255,176,46,.75); font-weight:700; }
+
+  @media (prefers-reduced-motion: reduce){
+    .neon-sign, .record, .led-track.scrolling .inner,
+    .status-led.paused::before, .coin-btn{ animation:none; }
+    .tonearm, .knob .cap, .pbtn, .coin-btn{ transition:none; }
+  }
 </style>
 </head>
 <body>
@@ -416,7 +437,7 @@
 
       <!-- LED marquee -->
       <div class="marquee">
-        <div class="led-track" id="trackLed">
+        <div class="led-track" id="trackLed" role="status" aria-live="polite" aria-atomic="true">
           <div class="inner" id="trackInner">★ WELCOME TO MF RADIO ★</div>
         </div>
         <div class="led-row">
@@ -425,7 +446,7 @@
             <div class="digit dim" id="d1">0</div>
             <div class="digit dim" id="d2">0</div>
           </div>
-          <div class="status-led standby" id="statusLed">STANDBY</div>
+          <div class="status-led standby" id="statusLed" role="status" aria-live="polite">STANDBY</div>
         </div>
       </div>
 
@@ -435,7 +456,7 @@
         <span class="screw bl"></span><span class="screw br"></span>
 
         <div class="vu-box">
-          <canvas id="vu"></canvas>
+          <canvas id="vu" aria-hidden="true"></canvas>
           <div class="vu-label">SIGNAL · VU</div>
         </div>
 
@@ -447,10 +468,10 @@
         </div>
 
         <div class="btn-row">
-          <button class="pbtn" id="playBtn" title="Play / Pause  (Space)">
+          <button class="pbtn" id="playBtn" type="button" title="Play / Pause  (Space)">
             <span class="glyph" id="playGlyph">▶</span><span id="playCaption">PLAY</span>
           </button>
-          <button class="pbtn amber" id="nextBtn" title="Next song  (N)">
+          <button class="pbtn amber" id="nextBtn" type="button" title="Next song  (N)">
             <span class="glyph">⏭</span><span>NEXT</span>
           </button>
         </div>
@@ -459,7 +480,7 @@
       <!-- coin door -->
       <div class="coin-door">
         <div class="coin-slot"></div>
-        <button class="coin-btn" id="coinBtn">INSERT COIN · START</button>
+        <button class="coin-btn" id="coinBtn" type="button">INSERT COIN · START</button>
       </div>
 
     </div>
@@ -528,6 +549,7 @@
 
   var AC = null, analyser = null, master = null, useWebAudio = false;
   var gains = [null, null];
+  var fadeTokens = [0, 0];
   var freqData = null;
 
   function ensureAudio(){
@@ -570,19 +592,24 @@
   }
 
   function fadeOutEl(el, i, ms){
+    var token = ++fadeTokens[i];
     if(useWebAudio && gains[i]){
+      gains[i].gain.cancelScheduledValues(AC.currentTime);
+      gains[i].gain.setValueAtTime(gains[i].gain.value, AC.currentTime);
       gains[i].gain.setTargetAtTime(0, AC.currentTime, ms / 3000);
     }else{
       var from = el.volume, t0 = performance.now();
       (function step(){
+        if(token !== fadeTokens[i]) return;
         var p = Math.min(1, (performance.now() - t0) / ms);
-        el.volume = from * (1 - p) * volume;
+        el.volume = from * (1 - p);
         if(p < 1) requestAnimationFrame(step);
       })();
     }
   }
 
   function fadeInEl(el, i, ms){
+    var token = ++fadeTokens[i];
     if(useWebAudio && gains[i]){
       gains[i].gain.cancelScheduledValues(AC.currentTime);
       gains[i].gain.setValueAtTime(0, AC.currentTime);
@@ -591,6 +618,7 @@
       el.volume = 0;
       var t0 = performance.now();
       (function step(){
+        if(token !== fadeTokens[i]) return;
         var p = Math.min(1, (performance.now() - t0) / ms);
         el.volume = p * volume;
         if(p < 1 && el.paused === false) requestAnimationFrame(step);
@@ -607,6 +635,7 @@
       var old = cur;
       fadeOutEl(old.el, i ^ 1, 700);
       setTimeout(function(){
+        if(cur && cur.el === old.el) return;
         old.el.pause();
         old.el.removeAttribute("src");
         try{ old.el.load(); }catch(e){}
@@ -634,6 +663,7 @@
     cabinet.classList.add("is-playing");
     cabinet.classList.add("has-track");
     setUi(num);
+    requestVU();
   }
 
   /* ---------------- UI ---------------- */
@@ -677,6 +707,7 @@
     started = true;
     coinBtn.classList.add("lit");
     coinBtn.textContent = "★ 1 FREE PLAY ★";
+    coinBtn.disabled = true;
   }
 
   function next(){
@@ -707,11 +738,13 @@
       cur.el.pause();
       state = "paused";
       cabinet.classList.remove("is-playing");
+      requestVU();
     }else if(state === "paused"){
       ensureAudio();
       cur.el.play().catch(function(){});
       state = "playing";
       cabinet.classList.add("is-playing");
+      requestVU();
     }
     setStatus();
   });
@@ -754,7 +787,10 @@
   setVolume(volume);
 
   /* ---------------- VU meter ---------------- */
-  var bars = 18, heights = new Array(bars).fill(0);
+  var bars = 18, heights = new Array(bars).fill(0), vuFrame = 0;
+  function requestVU(){
+    if(!vuFrame && !document.hidden) vuFrame = requestAnimationFrame(drawVU);
+  }
   function sizeVU(){
     var r = window.devicePixelRatio || 1;
     var w = vu.clientWidth, h = vu.clientHeight;
@@ -764,7 +800,7 @@
     }
   }
   function drawVU(){
-    requestAnimationFrame(drawVU);
+    vuFrame = 0;
     sizeVU();
     var w = vu.clientWidth, h = vu.clientHeight;
     vuCtx.clearRect(0, 0, w, h);
@@ -798,10 +834,15 @@
     // baseline
     vuCtx.fillStyle = "rgba(255,176,46,.25)";
     vuCtx.fillRect(2, h - 2, w - 4, 1);
+    if(state === "playing" || heights.some(function(value){ return value > 0.01; })) requestVU();
   }
-  drawVU();
+  requestVU();
   window.addEventListener("resize", function(){
     if(trackLed.classList.contains("scrolling")) setUi(cur ? cur.num : 0);
+    requestVU();
+  });
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden) requestVU();
   });
 
   setStatus();
