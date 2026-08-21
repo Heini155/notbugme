@@ -415,7 +415,7 @@
 
         <div class="vu-box">
           <canvas id="vu" aria-hidden="true"></canvas>
-          <div class="vu-label">SIGNAL · VU</div>
+          <div class="vu-label">FREQUENCY · SPECTRUM</div>
         </div>
 
         <div class="knob-col">
@@ -504,7 +504,7 @@
   var AC = null, analyser = null, master = null, useWebAudio = false;
   var gains = [null, null];
   var fadeTokens = [0, 0];
-  var freqData = null;
+  var freqData = null, spectrumBands = null;
 
   function ensureAudio(){
     if(AC){ if(AC.state === "suspended") AC.resume(); return; }
@@ -512,8 +512,10 @@
       var Ctx = window.AudioContext || window.webkitAudioContext;
       AC = new Ctx();
       analyser = AC.createAnalyser();
-      analyser.fftSize = 64;                       // 32 bins
-      analyser.smoothingTimeConstant = 0.72;
+      analyser.fftSize = 2048;                    // 1024 frequency bins
+      analyser.smoothingTimeConstant = 0.68;
+      analyser.minDecibels = -90;
+      analyser.maxDecibels = -10;
       master = AC.createGain();
       master.gain.value = volume;
       master.connect(analyser);
@@ -527,11 +529,28 @@
       });
       useWebAudio = true;
       freqData = new Uint8Array(analyser.frequencyBinCount);
+      spectrumBands = buildSpectrumBands();
     }catch(e){
       useWebAudio = false;
       els.forEach(function(el){ el.volume = volume; });
     }
     if(AC && AC.state === "suspended") AC.resume();
+  }
+
+  function buildSpectrumBands(){
+    var ranges = [];
+    var nyquist = AC.sampleRate / 2;
+    var minFrequency = 45;
+    var maxFrequency = Math.min(16000, nyquist * 0.92);
+    var ratio = maxFrequency / minFrequency;
+    for(var i = 0; i < 18; i++){
+      var low = minFrequency * Math.pow(ratio, i / 18);
+      var high = minFrequency * Math.pow(ratio, (i + 1) / 18);
+      var from = Math.max(1, Math.floor(low / nyquist * analyser.frequencyBinCount));
+      var to = Math.max(from + 1, Math.ceil(high / nyquist * analyser.frequencyBinCount));
+      ranges.push([from, Math.min(analyser.frequencyBinCount, to)]);
+    }
+    return ranges;
   }
 
   function setVolume(v){
@@ -753,7 +772,7 @@
   });
   setVolume(volume);
 
-  /* ---------------- VU meter ---------------- */
+  /* ---------------- real-time frequency spectrum ---------------- */
   var bars = 18, heights = new Array(bars).fill(0), vuFrame = 0;
   function requestVU(){
     if(!vuFrame && !document.hidden) vuFrame = requestAnimationFrame(drawVU);
@@ -773,26 +792,29 @@
     var w = vu.clientWidth, h = vu.clientHeight;
     vuCtx.clearRect(0, 0, w, h);
 
-    var target = state === "playing" && useWebAudio ? 1 : 0;
-    var live = 0;
-    if(target && analyser){
+    var active = state === "playing" && useWebAudio && spectrumBands;
+    if(active && analyser){
       analyser.getByteFrequencyData(freqData);
-      // energy across the lower bins
-      var sum = 0;
-      for(var b = 1; b < 9; b++) sum += freqData[b];
-      live = Math.min(1, (sum / (8 * 200)));
     }
 
     var bw = w / bars;
     for(var i = 0; i < bars; i++){
-      // pseudo-spectrum: high bars in the middle, live level modulated
-      var shape = Math.sin((i / (bars - 1)) * Math.PI);
-      var goal = target ? Math.max(0, live * (0.35 + 0.75 * shape) - Math.random() * 0.08) : 0;
-      heights[i] += (goal - heights[i]) * (goal > heights[i] ? 0.5 : 0.18);
+      var goal = 0;
+      if(active){
+        var range = spectrumBands[i], energy = 0;
+        for(var b = range[0]; b < range[1]; b++) energy += freqData[b] * freqData[b];
+        var rms = Math.sqrt(energy / (range[1] - range[0])) / 255;
+        // Compensate gently for the natural high-frequency roll-off, then add
+        // a small analogue-style flutter without inventing spectral content.
+        var compensation = 1 + 0.65 * (i / (bars - 1));
+        var flutter = 0.92 + Math.random() * 0.16;
+        goal = Math.min(1, Math.max(0, Math.pow(rms, 1.15) * compensation * 1.7 - 0.025) * flutter);
+      }
+      heights[i] += (goal - heights[i]) * (goal > heights[i] ? 0.52 : 0.16);
       var bh = Math.max(2, heights[i] * (h - 6));
       var x = i * bw + 2, y = h - 3 - bh;
       var t = heights[i];
-      var color = t > 0.78 ? "#ff4040" : (t > 0.5 ? "#ff9a2e" : "#ffb02e");
+      var color = t > 0.72 ? "#ff4040" : (t > 0.42 ? "#ff9a2e" : "#ffb02e");
       vuCtx.fillStyle = color;
       vuCtx.shadowColor = color;
       vuCtx.shadowBlur = 6;
