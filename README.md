@@ -1,6 +1,6 @@
 # MF Radio
 
-MF Radio is a self-contained retro web jukebox for a collection of 102 MP3 tracks. Drop a virtual coin, then listen in shuffled order without repeats until the complete collection has played.
+MF Radio is a self-contained retro web jukebox for a collection of 102 MP3 tracks. Press play, then listen in shuffled order without repeats until the complete collection has played.
 
 ## Features
 
@@ -18,10 +18,10 @@ MF Radio is a self-contained retro web jukebox for a collection of 102 MP3 track
 
 | Action | Mouse / touch | Keyboard |
 | --- | --- | --- |
-| Start | Insert Coin | Space |
-| Play / pause | Red button | Space |
-| Next track | Amber button | N |
-| Volume | Drag or scroll the knob | Arrow keys |
+| Start / resume | Red play button | Space or Right arrow when stopped |
+| Pause | Red button | Space or Left arrow |
+| Next track | Amber button | N or Right arrow while playing |
+| Volume | Drag or scroll the knob | Up / Down arrows |
 
 ## Project structure
 
