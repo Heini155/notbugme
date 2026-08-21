@@ -152,6 +152,7 @@
     letter-spacing:.12em; color:#fff3fa;
     text-shadow: 0 0 8px rgba(255,255,255,.8);
     line-height:.8;
+    transform:translateY(-3px);
   }
   .record-track{
     font-family:"Courier New", monospace; font-size:10px; font-weight:700;
@@ -349,9 +350,7 @@
     margin-top: 14px;
     height:86px;
     border-radius: 12px;
-    background:
-      radial-gradient(circle at 50% 48%, #080706 0 17px, #17130f 18px 31px, #090806 32px 38px, transparent 39px),
-      linear-gradient(180deg, #2b241a, #1d1811 60%, #141009);
+    background:linear-gradient(180deg, #2b241a, #1d1811 60%, #141009);
     border: 2px solid #0c0906;
     box-shadow: inset 0 2px 12px rgba(0,0,0,.9), inset 0 0 32px rgba(255,176,46,.035);
     overflow:hidden;
@@ -494,7 +493,9 @@
   var lastNum = null;
   var started = false;
   var ARM_OUTER = 0, ARM_INNER = 38;
+  var TRACK_GAP = 650;
   var armResetTimer = 0;
+  var trackChangeToken = 0;
 
   /* ---------------- audio engine ---------------- */
   var els = [new Audio(), new Audio()];
@@ -622,20 +623,32 @@
     }, 600);
   }
 
+  function beginPlayback(track){
+    if(cur !== track || !track.ready || state !== "playing") return;
+    if(!track.started){
+      fadeInEl(track.el, track.index, track.fadeMs);
+      track.started = true;
+    }
+    var p = track.el.play();
+    if(p && p.catch) p.catch(function(){ /* playback begins from a user gesture */ });
+  }
+
   function playTrack(num, firstPlay){
     var i = elIdx; elIdx ^= 1;
     var el = els[i];
+    var hadPrevious = !!cur;
+    var changeToken = ++trackChangeToken;
 
     // fade out the previous one
     if(cur){
       var old = cur;
-      fadeOutEl(old.el, i ^ 1, 700);
+      fadeOutEl(old.el, old.index, 260);
       setTimeout(function(){
         if(cur && cur.el === old.el) return;
         old.el.pause();
         old.el.removeAttribute("src");
         try{ old.el.load(); }catch(e){}
-      }, 900);
+      }, 340);
       lastNum = old.num;
     }
 
@@ -653,17 +666,26 @@
       }, 600);
     };
 
-    fadeInEl(el, i, firstPlay ? 400 : 700);
-    var p = el.play();
-    if(p && p.catch) p.catch(function(){ /* playback begins from a user gesture */ });
-
-    cur = { el: el, num: num, gain: gains[i] };
+    var track = {
+      el: el, num: num, gain: gains[i], index: i,
+      ready: !hadPrevious, started: false, fadeMs: firstPlay ? 400 : 650
+    };
+    cur = track;
     state = "playing";
     cabinet.classList.add("is-playing");
     resetTonearm();
     cabinet.classList.add("has-track");
     setUi(num);
     requestVU();
+    if(hadPrevious){
+      setTimeout(function(){
+        if(changeToken !== trackChangeToken || cur !== track) return;
+        track.ready = true;
+        beginPlayback(track);
+      }, TRACK_GAP);
+    }else{
+      beginPlayback(track);
+    }
   }
 
   /* ---------------- UI ---------------- */
@@ -713,15 +735,15 @@
       return;
     }
     if(state === "playing"){
-      cur.el.pause();
+      if(cur.started) cur.el.pause();
       state = "paused";
       cabinet.classList.remove("is-playing");
       requestVU();
     }else if(state === "paused"){
       ensureAudio();
-      cur.el.play().catch(function(){});
       state = "playing";
       cabinet.classList.add("is-playing");
+      beginPlayback(cur);
       requestVU();
     }
     setStatus();
