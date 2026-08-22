@@ -11,6 +11,7 @@ MF Radio is a self-contained retro web jukebox for a collection of 102 MP3 track
 - Play/pause, next-track and volume controls
 - Keyboard shortcuts
 - Responsive layout for desktop and mobile
+- Bundled display and monospace fonts for consistent rendering across devices
 - Screen wake lock while playing on supported mobile browsers
 - Lock-screen and system media controls through the Media Session API
 - Background track changes avoid throttled visual transition timers
@@ -36,6 +37,7 @@ Screen wake lock requires HTTPS (or localhost) and can be declined by the browse
 
 - `index.html` — complete interface, styling and player logic
 - `assets/Motherfuckers_0.mp3` through `assets/Motherfuckers_101.mp3` — audio collection
+- `assets/fonts/` — bundled Anton and Roboto Mono fonts with their OFL licenses
 - `noise.html` — earlier standalone experiment retained separately
 
 ## Run locally
