@@ -139,6 +139,31 @@
     width:76%; margin: 4px auto 0;
     aspect-ratio: 1/1;
   }
+  .record-flight{
+    position:absolute; inset:0;
+    opacity:0;
+    transform:translateY(145%) scale(.82);
+    transform-origin:50% 55%;
+    pointer-events:none;
+    will-change:transform, opacity;
+  }
+  .cabinet.record-loaded .record-flight{
+    opacity:1; transform:translateY(0) scale(1);
+  }
+  .cabinet.record-entering .record-flight{
+    animation:recordEnter .72s cubic-bezier(.22,.62,.32,1) both;
+  }
+  .cabinet.record-exiting .record-flight{
+    animation:recordExit .52s cubic-bezier(.55,0,.82,.45) both;
+  }
+  @keyframes recordEnter{
+    from{ opacity:0; transform:translateY(145%) scale(.82); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  @keyframes recordExit{
+    from{ opacity:1; transform:translateY(0) scale(1); }
+    to{ opacity:0; transform:translateY(145%) scale(.82); }
+  }
   .record{
     position:absolute; inset:9%; border-radius:50%;
     background:
@@ -422,6 +447,9 @@
 
   @media (prefers-reduced-motion: reduce){
     .neon-sign, .record, .broadcast-led.on::before{ animation:none; }
+    .cabinet.record-entering .record-flight,
+    .cabinet.record-exiting .record-flight{ animation:none; }
+    .cabinet.record-loaded .record-flight{ opacity:1; transform:none; }
     .tonearm, .knob .cap, .pbtn{ transition:none; }
   }
 </style>
@@ -434,9 +462,11 @@
       <div class="arch">
         <div class="neon-sign">MF&nbsp;RADIO</div>
         <div class="record-stage">
-          <div class="record" id="record">
-            <div class="label">
-              <div class="label-copy"><b>MF</b><span class="record-track" id="recordTrack" aria-hidden="true">---</span></div>
+          <div class="record-flight">
+            <div class="record" id="record">
+              <div class="label">
+                <div class="label-copy"><b>MF</b><span class="record-track" id="recordTrack" aria-hidden="true">---</span></div>
+              </div>
             </div>
           </div>
           <div class="tonearm" id="tonearm">
@@ -523,6 +553,7 @@
   var nextBtn   = $("nextBtn");
   var knob      = $("knob");
   var tonearm   = $("tonearm");
+  var recordFlight = document.querySelector(".record-flight");
   var vu        = $("vu");
   var vuCtx     = vu.getContext("2d");
 
@@ -547,15 +578,16 @@
   }
 
   /* ---------------- state ---------------- */
-  var state = "idle";           // idle | playing | paused
+  var state = "idle";           // idle | transitioning | cueing | playing | paused
   var volume = 0.8;
   var cur = null;               // { el, num, gain }
-  var lastNum = null;
   var started = false;
   var ARM_OUTER = 0, ARM_INNER = 38;
-  var TRACK_GAP = 650;
+  var RECORD_EXIT_MS = 520, RECORD_ENTER_MS = 720, ARM_CUE_MS = 600;
   var armResetTimer = 0;
+  var recordTransitionTimer = 0;
   var trackChangeToken = 0;
+  var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   /* ---------------- audio engine ---------------- */
   var els = [new Audio(), new Audio()];
@@ -630,23 +662,6 @@
     knob.setAttribute("aria-valuenow", (volume * 11).toFixed(1).replace(".0", ""));
   }
 
-  function fadeOutEl(el, i, ms){
-    var token = ++fadeTokens[i];
-    if(useWebAudio && gains[i]){
-      gains[i].gain.cancelScheduledValues(AC.currentTime);
-      gains[i].gain.setValueAtTime(gains[i].gain.value, AC.currentTime);
-      gains[i].gain.setTargetAtTime(0, AC.currentTime, ms / 3000);
-    }else{
-      var from = el.volume, t0 = performance.now();
-      (function step(){
-        if(token !== fadeTokens[i]) return;
-        var p = Math.min(1, (performance.now() - t0) / ms);
-        el.volume = from * (1 - p);
-        if(p < 1) requestAnimationFrame(step);
-      })();
-    }
-  }
-
   function fadeInEl(el, i, ms){
     var token = ++fadeTokens[i];
     if(useWebAudio && gains[i]){
@@ -677,16 +692,26 @@
     tonearm.style.setProperty("--arm-rot", angle.toFixed(3) + "deg");
   }
 
-  function resetTonearm(){
+  function resetTonearm(onReady, changeToken){
     clearTimeout(armResetTimer);
     tonearm.classList.remove("tracking");
-    // Make the return to the outer groove visible before linear tracking resumes.
     void tonearm.offsetWidth;
     tonearm.style.setProperty("--arm-rot", ARM_OUTER + "deg");
-    armResetTimer = setTimeout(function(){
+    var delay = document.hidden || reducedMotion.matches ? 0 : ARM_CUE_MS;
+    var finish = function(){
+      if(changeToken !== trackChangeToken) return;
+      if(onReady) onReady();
       tonearm.classList.add("tracking");
       updateTonearm();
-    }, 600);
+    };
+    if(delay) armResetTimer = setTimeout(finish, delay); else finish();
+  }
+
+  function parkTonearm(){
+    clearTimeout(armResetTimer);
+    tonearm.classList.remove("tracking");
+    tonearm.style.setProperty("--arm-rot", "-24deg");
+    cabinet.classList.remove("has-track");
   }
 
   function beginPlayback(track){
@@ -728,34 +753,80 @@
     }
   }
 
+  function visualDelay(ms){
+    return document.hidden || reducedMotion.matches ? 0 : ms;
+  }
+
+  function stopTrack(track){
+    if(!track) return;
+    ++fadeTokens[track.index];
+    if(useWebAudio && gains[track.index]){
+      gains[track.index].gain.cancelScheduledValues(AC.currentTime);
+      gains[track.index].gain.setValueAtTime(0, AC.currentTime);
+    }
+    track.el.onended = null;
+    track.el.onerror = null;
+    track.el.pause();
+    track.el.removeAttribute("src");
+    try{ track.el.load(); }catch(e){}
+  }
+
+  function primeFirstTrack(track){
+    // iOS requires the first media playback request to originate in the tap.
+    // Start it inaudibly, then rewind it when the visible mechanism is ready.
+    if(useWebAudio && gains[track.index]){
+      gains[track.index].gain.cancelScheduledValues(AC.currentTime);
+      gains[track.index].gain.setValueAtTime(0, AC.currentTime);
+    }else{
+      track.el.volume = 0;
+    }
+    track.primed = true;
+    var p = track.el.play();
+    if(p && p.catch) p.catch(function(){ track.primed = false; });
+  }
+
+  function cueIncomingTrack(track, changeToken){
+    if(changeToken !== trackChangeToken || cur !== track) return;
+    cabinet.classList.remove("record-entering", "record-exiting");
+    cabinet.classList.add("record-loaded", "is-playing", "has-track");
+    state = "cueing";
+    setStatus();
+    resetTonearm(function(){
+      if(changeToken !== trackChangeToken || cur !== track) return;
+      if(track.primed){
+        try{ track.el.currentTime = 0; }catch(e){}
+      }
+      track.ready = true;
+      state = "playing";
+      beginPlayback(track);
+      setStatus();
+      requestVU();
+    }, changeToken);
+  }
+
+  function bringInTrack(track, changeToken){
+    if(changeToken !== trackChangeToken || cur !== track) return;
+    cabinet.classList.remove("record-exiting", "record-loaded");
+    setUi(track.num);
+    void recordFlight.offsetWidth;
+    cabinet.classList.add("record-loaded", "record-entering");
+    var delay = visualDelay(RECORD_ENTER_MS);
+    var finish = function(){ cueIncomingTrack(track, changeToken); };
+    if(delay) recordTransitionTimer = setTimeout(finish, delay); else finish();
+  }
+
   function playTrack(num, firstPlay){
     var i = elIdx; elIdx ^= 1;
     var el = els[i];
     var hadPrevious = !!cur;
+    var hadVisibleRecord = cabinet.classList.contains("record-loaded");
     var changeToken = ++trackChangeToken;
+    clearTimeout(recordTransitionTimer);
+    clearTimeout(armResetTimer);
 
-    // fade out the previous one
     if(cur){
       var old = cur;
-      if(document.hidden){
-        ++fadeTokens[old.index];
-        if(useWebAudio && gains[old.index]){
-          gains[old.index].gain.cancelScheduledValues(AC.currentTime);
-          gains[old.index].gain.setValueAtTime(0, AC.currentTime);
-        }
-        old.el.pause();
-        old.el.removeAttribute("src");
-        try{ old.el.load(); }catch(e){}
-      }else{
-        fadeOutEl(old.el, old.index, 260);
-        setTimeout(function(){
-          if(cur && cur.el === old.el) return;
-          old.el.pause();
-          old.el.removeAttribute("src");
-          try{ old.el.load(); }catch(e){}
-        }, 340);
-      }
-      lastNum = old.num;
+      stopTrack(old);
     }
 
     el.src = fileOf(num);
@@ -774,23 +845,24 @@
 
     var track = {
       el: el, num: num, gain: gains[i], index: i,
-      ready: !hadPrevious, started: false, fadeMs: firstPlay ? 400 : 650
+      ready: false, started: false, primed: false, fadeMs: firstPlay ? 400 : 650
     };
     cur = track;
-    state = "playing";
-    cabinet.classList.add("is-playing");
-    resetTonearm();
-    cabinet.classList.add("has-track");
-    setUi(num);
+    state = "transitioning";
+    cabinet.classList.remove("is-playing", "record-entering");
+    parkTonearm();
+    setStatus();
     requestVU();
-    if(hadPrevious){
-      setTimeout(function(){
-        if(changeToken !== trackChangeToken || cur !== track) return;
-        track.ready = true;
-        beginPlayback(track);
-      }, document.hidden ? 0 : TRACK_GAP);
+
+    if(!hadPrevious) primeFirstTrack(track);
+
+    var startIncoming = function(){ bringInTrack(track, changeToken); };
+    var exitDelay = hadVisibleRecord ? visualDelay(RECORD_EXIT_MS) : 0;
+    if(exitDelay){
+      cabinet.classList.add("record-exiting");
+      recordTransitionTimer = setTimeout(startIncoming, exitDelay);
     }else{
-      beginPlayback(track);
+      startIncoming();
     }
   }
 
@@ -825,6 +897,7 @@
   }
 
   function next(){
+    if(state === "transitioning" || state === "cueing") return;
     if(!started){ start(); ensureAudio(); }
     ensureAudio();
     var n = pick(cur ? cur.num : -1);
