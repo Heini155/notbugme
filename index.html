@@ -379,7 +379,15 @@
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
     transition: transform .05s ease, box-shadow .05s ease;
   }
-  .pbtn .glyph{ font-size:20px; line-height:1; text-shadow:0 1px 2px rgba(0,0,0,.5); }
+  .pbtn .glyph{
+    display:block; width:22px; height:20px;
+    color:#fff;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.45));
+  }
+  .pbtn .glyph svg{ display:block; width:100%; height:100%; fill:currentColor; }
+  .pbtn .play-glyph .icon-pause{ display:none; }
+  .pbtn .play-glyph.is-pause .icon-play{ display:none; }
+  .pbtn .play-glyph.is-pause .icon-pause{ display:block; }
   .pbtn:active{ transform: translateY(3px); box-shadow: 0 2px 5px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,255,255,.6); }
   .pbtn.amber{ --btn-mid:#e8a52e; --btn-lo:#8a5a0d; --btn-hi:#ffe9c0; }
   .pbtn:focus-visible, .knob:focus-visible{
@@ -473,10 +481,15 @@
 
         <div class="btn-row">
           <button class="pbtn" id="playBtn" type="button" title="Play / Pause  (Space)">
-            <span class="glyph" id="playGlyph">▶</span><span id="playCaption">PLAY</span>
+            <span class="glyph play-glyph" id="playGlyph" aria-hidden="true">
+              <svg class="icon-play" viewBox="0 0 22 20"><path d="M4 2.1v15.8L18 10z"/></svg>
+              <svg class="icon-pause" viewBox="0 0 22 20"><path d="M4 2h5v16H4zm9 0h5v16h-5z"/></svg>
+            </span><span id="playCaption">PLAY</span>
           </button>
           <button class="pbtn amber" id="nextBtn" type="button" title="Next song  (N)">
-            <span class="glyph">⏭</span><span>NEXT</span>
+            <span class="glyph" aria-hidden="true">
+              <svg viewBox="0 0 22 20"><path d="M1 2.2 9.1 10 1 17.8zm8.3 0 8.1 7.8-8.1 7.8zM18 2h3v16h-3z"/></svg>
+            </span><span>NEXT</span>
           </button>
         </div>
       </div>
@@ -799,9 +812,9 @@
     if("mediaSession" in navigator) navigator.mediaSession.playbackState = broadcasting ? "playing" : (state === "paused" ? "paused" : "none");
     if(broadcasting) requestScreenAwake(); else releaseScreenAwake();
     if(state === "playing"){
-      playGlyph.textContent = "❚❚"; playCaption.textContent = "PAUSE";
+      playGlyph.classList.add("is-pause"); playCaption.textContent = "PAUSE";
     }else{
-      playGlyph.textContent = "▶"; playCaption.textContent = started ? "PLAY" : "READY";
+      playGlyph.classList.remove("is-pause"); playCaption.textContent = started ? "PLAY" : "READY";
     }
   }
 
