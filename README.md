@@ -7,6 +7,7 @@ MF Radio is a self-contained retro web jukebox for a collection of 102 MP3 track
 - 102-track shuffled playlist
 - No repeats within a shuffle cycle
 - Mechanical record changes with synchronized record, tonearm and audio timing
+- Four deterministic record-label colors assigned cyclically by track number
 - Animated record, tonearm, LED display and live 18-band frequency spectrum
 - Play/pause, next-track and volume controls
 - Keyboard shortcuts
