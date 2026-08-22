@@ -125,10 +125,10 @@
   .record{
     position:absolute; inset:9%; border-radius:50%;
     background:
-      radial-gradient(circle at 34% 30%, rgba(255,255,255,.16), transparent 42%),
+      radial-gradient(circle at 34% 30%, rgba(255,255,255,.24), transparent 43%),
       repeating-radial-gradient(circle at 50% 50%,
-        #0d0d10 0 2px, #17171c 2px 4px, #0d0d10 4px 6px);
-    box-shadow: 0 0 34px rgba(0,0,0,.85), inset 0 0 44px rgba(0,0,0,.9);
+        #15151a 0 2px, #292930 2px 4px, #121217 4px 6px);
+    box-shadow: 0 0 28px rgba(0,0,0,.72), inset 0 0 36px rgba(0,0,0,.72);
     animation: spin 1.8s linear infinite;
     animation-play-state: paused;
   }
@@ -209,7 +209,7 @@
     padding: 13px 12px 12px;
   }
   .led-row{
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px;
+    display:flex; align-items:center; justify-content:center;
   }
   .digits{ display:flex; justify-content:center; gap:7px; }
   .digit{
@@ -221,23 +221,6 @@
     box-shadow: inset 0 0 14px rgba(0,0,0,.95), 0 0 8px rgba(255,176,46,.05);
   }
   .digit.dim{ color:rgba(255,176,46,.18); text-shadow:none; }
-  .status-led{
-    font-family:"Courier New", monospace; font-weight:700; font-size:12px;
-    letter-spacing:.14em; color:var(--led-green);
-    text-shadow: 0 0 8px rgba(61,255,139,.8);
-    display:flex; align-items:center; gap:7px;
-  }
-  .status-led::before{
-    content:""; width:9px; height:9px; border-radius:50%;
-    background: var(--led-green);
-    box-shadow: 0 0 8px var(--led-green), 0 0 16px rgba(61,255,139,.6);
-  }
-  .status-led.standby{ color:rgba(255,176,46,.25); text-shadow:none; }
-  .status-led.standby::before{ background:#3a2b12; box-shadow:none; }
-  .status-led.paused{ color:var(--led-amber); text-shadow:0 0 8px rgba(255,176,46,.8); }
-  .status-led.paused::before{ background:var(--led-amber); box-shadow:0 0 8px rgba(255,176,46,.7); animation: blink 1s steps(2) infinite; }
-  @keyframes blink{ 50%{ opacity:.25; } }
-
   /* ================= CONTROL PANEL ================= */
   .panel{
     position:relative;
@@ -284,6 +267,7 @@
     grid-column:2 / 3; grid-row:1 / 3;
     display:flex; flex-direction:column; align-items:center; gap:5px;
   }
+  .knob-wrap{ position:relative; padding-inline:12px; }
   .knob{
     --rot:-135deg;
     position:relative; width:74px; height:74px; border-radius:50%;
@@ -310,16 +294,57 @@
   }
   .knob .tick{
     position:absolute; inset:-7px; border-radius:50%;
-    background:
-      repeating-conic-gradient(from -135deg, rgba(0,0,0,.55) 0deg 2deg, transparent 2deg 36deg);
-    -webkit-mask: radial-gradient(circle, transparent 62%, #000 63% 71%, transparent 72%);
-            mask: radial-gradient(circle, transparent 62%, #000 63% 71%, transparent 72%);
     pointer-events:none;
+  }
+  .knob .tick-mark{
+    position:absolute; inset:0;
+    transform:rotate(var(--tick-rot));
+  }
+  .knob .tick-mark::after{
+    content:""; position:absolute; left:50%; top:1px;
+    width:1.5px; height:4px; transform:translateX(-50%);
+    border-radius:2px; background:rgba(0,0,0,.48);
+  }
+  .knob .tick-mark.major::after{
+    top:0; width:2px; height:7px; background:rgba(0,0,0,.68);
   }
   .knob-label{
     font-family:"Courier New", monospace; font-size:9px; font-weight:700;
     letter-spacing:.28em; color:#39424a;
   }
+  .knob-scale{
+    position:absolute; bottom:3px;
+    font-family:"Courier New", monospace; font-size:10px; font-weight:700;
+    color:#303840;
+  }
+  .knob-scale.min{ left:4px; }
+  .knob-scale.max{ right:-1px; }
+  .knob-scale.mid{
+    top:-14px; bottom:auto; left:50%;
+    transform:translateX(-50%);
+    font-size:9px;
+  }
+  .broadcast-led{
+    min-width:88px; margin-top:11px;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    font-family:"Courier New", monospace; font-size:9px; font-weight:700;
+    letter-spacing:.12em; color:#23282d;
+    text-shadow:none;
+  }
+  .broadcast-led::before{
+    content:""; width:8px; height:8px; flex:0 0 auto; border-radius:50%;
+    background:#451313; box-shadow:inset 0 0 3px rgba(0,0,0,.8);
+  }
+  .broadcast-led.on{
+    color:#23282d;
+    text-shadow:none;
+  }
+  .broadcast-led.on::before{
+    background:#ff3030;
+    box-shadow:0 0 7px #ff3030, 0 0 14px rgba(255,35,35,.65);
+    animation:broadcastBlink 1.1s steps(2,end) infinite;
+  }
+  @keyframes broadcastBlink{ 50%{ opacity:.55; } }
 
   .btn-row{
     grid-column:1 / 2; grid-row:2 / 3;
@@ -371,7 +396,7 @@
   .hint b{ color: rgba(255,176,46,.75); font-weight:700; }
 
   @media (prefers-reduced-motion: reduce){
-    .neon-sign, .record, .status-led.paused::before{ animation:none; }
+    .neon-sign, .record, .broadcast-led.on::before{ animation:none; }
     .tonearm, .knob .cap, .pbtn{ transition:none; }
   }
 </style>
@@ -403,7 +428,6 @@
             <div class="digit dim" id="d1" aria-hidden="true">0</div>
             <div class="digit dim" id="d2" aria-hidden="true">0</div>
           </div>
-          <div class="status-led standby" id="statusLed" role="status" aria-live="polite">STANDBY</div>
         </div>
       </div>
 
@@ -418,10 +442,16 @@
         </div>
 
         <div class="knob-col">
-          <div class="knob" id="knob" role="slider" aria-label="volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80" tabindex="0">
-            <div class="tick"></div><div class="cap"><div class="pointer"></div></div>
+          <div class="knob-wrap">
+            <span class="knob-scale min" aria-hidden="true">0</span>
+            <span class="knob-scale mid" aria-hidden="true">5.5</span>
+            <div class="knob" id="knob" role="slider" aria-label="volume, 0 to 11" aria-valuemin="0" aria-valuemax="11" aria-valuenow="9" tabindex="0">
+              <div class="tick"></div><div class="cap"><div class="pointer"></div></div>
+            </div>
+            <span class="knob-scale max" aria-hidden="true">11</span>
           </div>
           <div class="knob-label">VOLUME</div>
+          <div class="broadcast-led" id="statusLed" role="status" aria-live="polite" aria-label="Broadcast off">BROADCAST</div>
         </div>
 
         <div class="btn-row">
@@ -500,15 +530,20 @@
   /* ---------------- audio engine ---------------- */
   var els = [new Audio(), new Audio()];
   var elIdx = 0;
-  els.forEach(function(el){ el.preload = "auto"; });
+  els.forEach(function(el){ el.preload = "auto"; el.setAttribute("playsinline", ""); });
 
   var AC = null, analyser = null, master = null, useWebAudio = false;
   var gains = [null, null];
   var fadeTokens = [0, 0];
   var freqData = null, spectrumBands = null;
+  var wakeLock = null;
+  var mobileLike = window.matchMedia("(pointer:coarse)").matches;
 
   function ensureAudio(){
-    if(AC){ if(AC.state === "suspended") AC.resume(); return; }
+    if(AC){
+      if(AC.state === "suspended") AC.resume().catch(function(){});
+      return;
+    }
     try{
       var Ctx = window.AudioContext || window.webkitAudioContext;
       AC = new Ctx();
@@ -535,7 +570,7 @@
       useWebAudio = false;
       els.forEach(function(el){ el.volume = volume; });
     }
-    if(AC && AC.state === "suspended") AC.resume();
+    if(AC && AC.state === "suspended") AC.resume().catch(function(){});
   }
 
   function buildSpectrumBands(){
@@ -561,8 +596,8 @@
     }else{
       els.forEach(function(el){ el.volume = volume; });
     }
-    knob.style.setProperty("--rot", (-135 + 270 * volume) + "deg");
-    knob.setAttribute("aria-valuenow", Math.round(volume * 100));
+    knob.style.setProperty("--rot", knobAngle(volume) + "deg");
+    knob.setAttribute("aria-valuenow", (volume * 11).toFixed(1).replace(".0", ""));
   }
 
   function fadeOutEl(el, i, ms){
@@ -589,6 +624,7 @@
       gains[i].gain.setValueAtTime(0, AC.currentTime);
       gains[i].gain.setTargetAtTime(1, AC.currentTime, ms / 3000);
     }else{
+      if(document.hidden){ el.volume = volume; return; }
       el.volume = 0;
       var t0 = performance.now();
       (function step(){
@@ -625,12 +661,41 @@
 
   function beginPlayback(track){
     if(cur !== track || !track.ready || state !== "playing") return;
+    if(AC && AC.state === "suspended") AC.resume().catch(function(){});
     if(!track.started){
       fadeInEl(track.el, track.index, track.fadeMs);
       track.started = true;
     }
     var p = track.el.play();
     if(p && p.catch) p.catch(function(){ /* playback begins from a user gesture */ });
+  }
+
+  async function requestScreenAwake(){
+    if(!mobileLike || state !== "playing" || document.hidden || wakeLock || !("wakeLock" in navigator)) return;
+    try{
+      var lock = await navigator.wakeLock.request("screen");
+      wakeLock = lock;
+      lock.addEventListener("release", function(){ if(wakeLock === lock) wakeLock = null; });
+      if(state !== "playing" || document.hidden) lock.release().catch(function(){});
+    }catch(e){ /* unsupported, denied, low battery or power-saving mode */ }
+  }
+
+  function releaseScreenAwake(){
+    if(!wakeLock) return;
+    var lock = wakeLock;
+    wakeLock = null;
+    lock.release().catch(function(){});
+  }
+
+  function updateMediaSession(num){
+    if(!("mediaSession" in navigator)) return;
+    if("MediaMetadata" in window){
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title:"Track " + String(num).padStart(3, "0"),
+        artist:"MF Radio",
+        album:"MF Radio"
+      });
+    }
   }
 
   function playTrack(num, firstPlay){
@@ -642,13 +707,24 @@
     // fade out the previous one
     if(cur){
       var old = cur;
-      fadeOutEl(old.el, old.index, 260);
-      setTimeout(function(){
-        if(cur && cur.el === old.el) return;
+      if(document.hidden){
+        ++fadeTokens[old.index];
+        if(useWebAudio && gains[old.index]){
+          gains[old.index].gain.cancelScheduledValues(AC.currentTime);
+          gains[old.index].gain.setValueAtTime(0, AC.currentTime);
+        }
         old.el.pause();
         old.el.removeAttribute("src");
         try{ old.el.load(); }catch(e){}
-      }, 340);
+      }else{
+        fadeOutEl(old.el, old.index, 260);
+        setTimeout(function(){
+          if(cur && cur.el === old.el) return;
+          old.el.pause();
+          old.el.removeAttribute("src");
+          try{ old.el.load(); }catch(e){}
+        }, 340);
+      }
       lastNum = old.num;
     }
 
@@ -682,7 +758,7 @@
         if(changeToken !== trackChangeToken || cur !== track) return;
         track.ready = true;
         beginPlayback(track);
-      }, TRACK_GAP);
+      }, document.hidden ? 0 : TRACK_GAP);
     }else{
       beginPlayback(track);
     }
@@ -693,19 +769,18 @@
     var s = String(num).padStart(3, "0");
     digitsDisplay.setAttribute("aria-label", "Track " + s);
     recordTrack.textContent = s;
+    updateMediaSession(num);
     digits.forEach(function(d, k){
       d.textContent = s[k];
       d.classList.remove("dim");
     });
   }
   function setStatus(){
-    if(state === "playing"){
-      statusLed.className = "status-led"; statusLed.textContent = "PLAYING";
-    }else if(state === "paused"){
-      statusLed.className = "status-led paused"; statusLed.textContent = "PAUSED";
-    }else{
-      statusLed.className = "status-led standby"; statusLed.textContent = "STANDBY";
-    }
+    var broadcasting = state === "playing";
+    statusLed.className = "broadcast-led" + (broadcasting ? " on" : "");
+    statusLed.setAttribute("aria-label", broadcasting ? "Broadcast active" : "Broadcast off");
+    if("mediaSession" in navigator) navigator.mediaSession.playbackState = broadcasting ? "playing" : (state === "paused" ? "paused" : "none");
+    if(broadcasting) requestScreenAwake(); else releaseScreenAwake();
     if(state === "playing"){
       playGlyph.textContent = "❚❚"; playCaption.textContent = "PAUSE";
     }else{
@@ -772,6 +847,19 @@
   });
 
   /* ---------------- volume knob ---------------- */
+  function knobAngle(v){
+    // Slightly asymmetric endpoints align the pointer and ticks with the labels.
+    return v <= 0.5 ? -130 + 260 * v : 280 * (v - 0.5);
+  }
+  function buildKnobScale(){
+    var ring = knob.querySelector(".tick");
+    for(var i = 0; i <= 22; i++){
+      var mark = document.createElement("span");
+      mark.className = "tick-mark" + (i % 2 === 0 || i === 11 ? " major" : "");
+      mark.style.setProperty("--tick-rot", knobAngle(i / 22) + "deg");
+      ring.appendChild(mark);
+    }
+  }
   var dragging = false, dragY = 0, dragV = 0;
   knob.addEventListener("pointerdown", function(e){
     dragging = true; dragY = e.clientY; dragV = volume;
@@ -792,6 +880,7 @@
     if(e.key === "ArrowUp"){ e.preventDefault(); e.stopPropagation(); setVolume(volume + 0.05); }
     if(e.key === "ArrowDown"){ e.preventDefault(); e.stopPropagation(); setVolume(volume - 0.05); }
   });
+  buildKnobScale();
   setVolume(volume);
 
   /* ---------------- real-time frequency spectrum ---------------- */
@@ -853,8 +942,22 @@
     requestVU();
   });
   document.addEventListener("visibilitychange", function(){
-    if(!document.hidden) requestVU();
+    if(!document.hidden){
+      requestVU();
+      if(state === "playing"){
+        ensureAudio();
+        requestScreenAwake();
+      }
+    }
   });
+
+  if("mediaSession" in navigator){
+    [["play", function(){ if(state !== "playing") playBtn.click(); }],
+     ["pause", function(){ if(state === "playing") playBtn.click(); }],
+     ["nexttrack", function(){ nextBtn.click(); }]].forEach(function(entry){
+      try{ navigator.mediaSession.setActionHandler(entry[0], entry[1]); }catch(e){}
+    });
+  }
 
   setStatus();
 })();

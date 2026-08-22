@@ -11,6 +11,9 @@ MF Radio is a self-contained retro web jukebox for a collection of 102 MP3 track
 - Play/pause, next-track and volume controls
 - Keyboard shortcuts
 - Responsive layout for desktop and mobile
+- Screen wake lock while playing on supported mobile browsers
+- Lock-screen and system media controls through the Media Session API
+- Background track changes avoid throttled visual transition timers
 - Reduced-motion support
 - No external libraries, accounts or tracking
 
@@ -22,6 +25,12 @@ MF Radio is a self-contained retro web jukebox for a collection of 102 MP3 track
 | Pause | Red button | Space or Left arrow |
 | Next track | Amber button | N or Right arrow while playing |
 | Volume | Drag or scroll the knob | Up / Down arrows |
+
+## Mobile playback
+
+While music is playing, supported touch devices request a screen wake lock so the display does not dim automatically. If the screen is switched off deliberately or the browser moves to the background, playback continues through the regular media element and can be controlled through the operating system's media controls.
+
+Screen wake lock requires HTTPS (or localhost) and can be declined by the browser, battery saver or low-power settings. A mobile operating system may still terminate any browser tab under memory or battery pressure; a website cannot override that system decision.
 
 ## Project structure
 
