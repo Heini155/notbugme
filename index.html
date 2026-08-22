@@ -848,8 +848,8 @@
 
   /* ---------------- volume knob ---------------- */
   function knobAngle(v){
-    // Slightly asymmetric endpoints align the pointer and ticks with the labels.
-    return v <= 0.5 ? -130 + 260 * v : 280 * (v - 0.5);
+    // Symmetric endpoints keep 0 and 11 on the same horizontal level.
+    return v <= 0.5 ? -130 + 260 * v : 260 * (v - 0.5);
   }
   function buildKnobScale(){
     var ring = knob.querySelector(".tick");
